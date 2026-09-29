@@ -40,9 +40,9 @@ COPY --from=build /app/dist ./dist
 # Copy backend
 COPY --from=server-build /app/server ./server
 
-WORKDIR /app/server
+WORKDIR /app
 
 EXPOSE 8080
 
 # Run the compiled API server
-CMD ["node", "index.js"]
+CMD ["node", "server/index.js"]
