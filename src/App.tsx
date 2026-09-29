@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
+import { AuthProvider } from '@/hooks/useAuth';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ToastProvider } from '@/hooks/useToast';
 import { AppShell } from '@/components/navigation/AppShell';
@@ -30,9 +31,11 @@ const AppRoutes = () => {
 export const App = () => (
   <ThemeProvider>
     <BrowserRouter>
-      <ToastProvider>
-        <AppRoutes />
-      </ToastProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
+      </AuthProvider>
     </BrowserRouter>
   </ThemeProvider>
 );
