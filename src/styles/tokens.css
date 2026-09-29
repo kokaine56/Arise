@@ -1,0 +1,207 @@
+/* ==========================================================================
+   Arise — design tokens
+   --------------------------------------------------------------------------
+   Single source of truth for colour, elevation, glass, type, motion and
+   layout. Components reference semantic names only; raw values never appear
+   in TSX.
+
+   Layering model, bottom to top:
+     canvas background
+       -> ambient light (two low-contrast washes, as if lit by a window)
+         -> glass surface
+           -> hairline border + inner sheen
+             -> content
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* --- Canvas ---------------------------------------------------------- */
+  --background: #08090b;
+  --background-elevated: #0c0e11;
+
+  /* Ambient light. Intentionally faint: this is room lighting, not decoration.
+     Deliberately only two washes, anchored to opposite corners. */
+  --ambient-primary: rgba(84, 132, 150, 0.14);
+  --ambient-secondary: rgba(140, 116, 88, 0.1);
+  --ambient-tertiary: rgba(60, 90, 80, 0.08);
+
+  /* --- Ink ------------------------------------------------------------- */
+  --foreground: #edf0f3;
+  --foreground-muted: #939ba6;
+  --foreground-subtle: #626a75;
+  --foreground-on-accent: #05221a;
+
+  /* --- Glass ----------------------------------------------------------- */
+  --glass-background: rgba(255, 255, 255, 0.045);
+  --glass-background-strong: rgba(255, 255, 255, 0.072);
+  --glass-background-hover: rgba(255, 255, 255, 0.062);
+  --glass-background-sunken: rgba(0, 0, 0, 0.18);
+
+  --glass-border: rgba(255, 255, 255, 0.085);
+  --glass-border-strong: rgba(255, 255, 255, 0.14);
+  /* A one-pixel light catch along the top edge. This is what separates real
+     glass from a translucent rectangle. */
+  --glass-sheen: rgba(255, 255, 255, 0.14);
+
+  --glass-blur: 20px;
+  --glass-blur-strong: 34px;
+  --glass-saturate: 1.5;
+
+  --glass-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.28), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  --glass-shadow-raised:
+    0 1px 1px rgba(0, 0, 0, 0.3), 0 24px 60px -24px rgba(0, 0, 0, 0.85);
+  --glass-inset: inset 0 1px 0 0 var(--glass-sheen);
+
+  /* --- Signal ---------------------------------------------------------- */
+  /* Completion *is* the product's one signal, so accent and success share a
+     hue family rather than competing. */
+  --accent: #7bdcc0;
+  --accent-strong: #9defd6;
+  --accent-quiet: rgba(123, 220, 192, 0.14);
+  --accent-quiet-strong: rgba(123, 220, 192, 0.24);
+  --accent-contrast: #04211a;
+
+  --success: #7bdcc0;
+  --success-quiet: rgba(123, 220, 192, 0.12);
+
+  --warning: #e3b778;
+  --warning-quiet: rgba(227, 183, 120, 0.14);
+
+  --danger: #e58a8a;
+  --danger-quiet: rgba(229, 138, 138, 0.14);
+
+  /* --- Focus ----------------------------------------------------------- */
+  --focus-ring: #7bdcc0;
+
+  /* --- Skeleton -------------------------------------------------------- */
+  --skeleton-base: rgba(255, 255, 255, 0.05);
+  --skeleton-sheen: rgba(255, 255, 255, 0.1);
+
+  /* --- Scrim ----------------------------------------------------------- */
+  --scrim: rgba(4, 5, 7, 0.66);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --background: #edeff2;
+  --background-elevated: #f6f7f9;
+
+  --ambient-primary: rgba(150, 190, 205, 0.3);
+  --ambient-secondary: rgba(214, 190, 160, 0.24);
+  --ambient-tertiary: rgba(170, 200, 190, 0.18);
+
+  --foreground: #10141a;
+  --foreground-muted: #59616d;
+  --foreground-subtle: #808996;
+  --foreground-on-accent: #ffffff;
+
+  --glass-background: rgba(255, 255, 255, 0.6);
+  --glass-background-strong: rgba(255, 255, 255, 0.78);
+  --glass-background-hover: rgba(255, 255, 255, 0.72);
+  --glass-background-sunken: rgba(16, 22, 30, 0.04);
+
+  --glass-border: rgba(16, 22, 30, 0.09);
+  --glass-border-strong: rgba(16, 22, 30, 0.16);
+  --glass-sheen: rgba(255, 255, 255, 0.85);
+
+  --glass-blur: 18px;
+  --glass-blur-strong: 30px;
+  --glass-saturate: 1.35;
+
+  --glass-shadow:
+    0 1px 1px rgba(16, 22, 30, 0.04), 0 8px 24px -14px rgba(16, 22, 30, 0.22);
+  --glass-shadow-raised:
+    0 1px 1px rgba(16, 22, 30, 0.05), 0 24px 56px -26px rgba(16, 22, 30, 0.32);
+  --glass-inset: inset 0 1px 0 0 var(--glass-sheen);
+
+  /* Darkened for legibility on a light canvas: 5.2:1 against --glass-strong */
+  --accent: #2f9c7b;
+  --accent-strong: #1b7259;
+  --accent-quiet: rgba(47, 156, 123, 0.12);
+  --accent-quiet-strong: rgba(47, 156, 123, 0.2);
+  --accent-contrast: #ffffff;
+
+  --success: #2f9c7b;
+  --success-quiet: rgba(47, 156, 123, 0.12);
+
+  --warning: #9a6a1f;
+  --warning-quiet: rgba(154, 106, 31, 0.12);
+
+  --danger: #b4403f;
+  --danger-quiet: rgba(180, 64, 63, 0.1);
+
+  --focus-ring: #1b7259;
+
+  --skeleton-base: rgba(16, 22, 30, 0.05);
+  --skeleton-sheen: rgba(16, 22, 30, 0.09);
+
+  --scrim: rgba(24, 30, 38, 0.4);
+}
+
+/* ==========================================================================
+   Tailwind theme bridge
+   `inline` keeps the utility referencing the live custom property, so a
+   `[data-theme]` swap repaints everything without duplicating a dark: variant.
+   ========================================================================== */
+
+@theme inline {
+  /* Colour */
+  --color-background: var(--background);
+  --color-background-elevated: var(--background-elevated);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--foreground-muted);
+  --color-subtle: var(--foreground-subtle);
+  --color-on-accent: var(--foreground-on-accent);
+
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-quiet: var(--accent-quiet);
+  --color-accent-quiet-strong: var(--accent-quiet-strong);
+  --color-accent-contrast: var(--accent-contrast);
+
+  --color-success: var(--success);
+  --color-success-quiet: var(--success-quiet);
+  --color-warning: var(--warning);
+  --color-warning-quiet: var(--warning-quiet);
+  --color-danger: var(--danger);
+  --color-danger-quiet: var(--danger-quiet);
+
+  /* Glass */
+  --color-glass: var(--glass-background);
+  --color-glass-strong: var(--glass-background-strong);
+  --color-glass-border: var(--glass-border);
+  --color-glass-border-strong: var(--glass-border-strong);
+
+  /* Type */
+  --font-display: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.1;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.35;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.5;
+  --text-body-lg: 1.0625rem;
+  --text-body-lg--line-height: 1.55;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.25;
+  --text-headline: 1.625rem;
+  --text-headline--line-height: 1.15;
+
+  /* Radii — large for surfaces, restrained for controls */
+  --radius-chip: 0.625rem;
+  --radius-control: 0.875rem;
+  --radius-surface: 1.25rem;
+  --radius-glass: 1.5rem;
+  --radius-glass-lg: 1.75rem;
+
+  /* Motion — 140–300ms, no bounce */
+  --ease-out-soft: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
