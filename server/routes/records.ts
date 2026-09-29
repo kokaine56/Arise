@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Db } from '../db.js';
 import { badRequest, notFound, sendJson, sendNoContent, type Router } from '../http.js';
+import { requireAccessSession } from '../auth.js';
 import { toRecordRow, type DbRecord } from '../rows.js';
 import {
   asBoolean,
@@ -56,7 +57,9 @@ const upsert = async (db: Db, input: Record<string, unknown>): Promise<DbRecord>
 };
 
 export const registerRecordRoutes = (router: Router, db: Db): void => {
-  router.get('/api/records', async ({ query, res }) => {
+  router.get('/api/records', async (ctx) => {
+    requireAccessSession(ctx);
+    const { query, res } = ctx;
     const from = query.get('from');
     const to = query.get('to');
     const date = query.get('date');
@@ -86,13 +89,17 @@ export const registerRecordRoutes = (router: Router, db: Db): void => {
     sendJson(res, 200, rows.map(r => toRecordRow(r as unknown as DbRecord)));
   });
 
-  router.put('/api/records', async ({ body, res }) => {
+  router.put('/api/records', async (ctx) => {
+    requireAccessSession(ctx);
+    const { body, res } = ctx;
     const input = requireObject(body);
     const row = await upsert(db, input);
     sendJson(res, 200, toRecordRow(row));
   });
 
-  router.put('/api/records/notes', async ({ body, res }) => {
+  router.put('/api/records/notes', async (ctx) => {
+    requireAccessSession(ctx);
+    const { body, res } = ctx;
     const input = requireObject(body);
     const goalId = asStringOrNull(input['goalId'], 'goalId', 64);
     if (!goalId) throw badRequest('goalId is required.');
@@ -125,7 +132,9 @@ export const registerRecordRoutes = (router: Router, db: Db): void => {
     sendJson(res, 200, toRecordRow(row));
   });
 
-  router.delete('/api/records', async ({ query, res }) => {
+  router.delete('/api/records', async (ctx) => {
+    requireAccessSession(ctx);
+    const { query, res } = ctx;
     const goalId = query.get('goalId');
     const date = query.get('date');
     if (!goalId || !date) throw badRequest('Both goalId and date are required.');

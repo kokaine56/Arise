@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Db } from '../db.js';
 import { badRequest, notFound, sendJson, sendNoContent, type Router } from '../http.js';
+import { requireAccessSession } from '../auth.js';
 import { asString, requireObject } from '../validate.js';
 
 interface DbCategory {
@@ -44,13 +45,17 @@ const seedCategoriesIfEmpty = async (db: Db): Promise<void> => {
 };
 
 export const registerCategoryRoutes = (router: Router, db: Db): void => {
-  router.get('/api/categories', async ({ res }) => {
+  router.get('/api/categories', async (ctx) => {
+    requireAccessSession(ctx);
+    const { res } = ctx;
     await seedCategoriesIfEmpty(db);
     const rows = await db.collection('categories').find().sort({ sort_order: 1, slug: 1 }).toArray();
     sendJson(res, 200, rows.map(r => toCategory(r as unknown as DbCategory)));
   });
 
-  router.post('/api/categories', async ({ body, res }) => {
+  router.post('/api/categories', async (ctx) => {
+    requireAccessSession(ctx);
+    const { body, res } = ctx;
     const input = requireObject(body);
     const label = asString(input['label'], 'label', 24).trim();
     if (label.length === 0) throw badRequest('A category needs a name.');
@@ -67,7 +72,9 @@ export const registerCategoryRoutes = (router: Router, db: Db): void => {
     sendJson(res, 201, toCategory(row as unknown as DbCategory));
   });
 
-  router.delete('/api/categories/:id', async ({ params, res }) => {
+  router.delete('/api/categories/:id', async (ctx) => {
+    requireAccessSession(ctx);
+    const { params, res } = ctx;
     const id = params['id'] as string;
     const row = await db.collection('categories').findOne({ id }) as unknown as DbCategory | undefined;
 

@@ -4,6 +4,8 @@ import { detectTimeZone, todayIn, type CivilDate } from '@/lib/date/civil';
 import { type AppError } from '@/lib/errors';
 
 interface AuthContextValue {
+  isAuthenticated: boolean | null;
+  verifyAccess: (code: string) => Promise<boolean>;
   profile: Profile | null;
   settings: AppSettings;
   error: AppError | null;
@@ -16,6 +18,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }): ReactNode => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [error, setError] = useState<AppError | null>(null);
@@ -24,6 +27,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }): ReactNode =
   const loadData = useCallback(async () => {
     setIsProfileLoading(true);
     try {
+      const accessRes = await fetch('/api/access/session');
+      const accessData = await accessRes.json();
+      
+      if (!accessData.authenticated) {
+        setIsAuthenticated(false);
+        setIsProfileLoading(false);
+        return;
+      }
+      setIsAuthenticated(true);
+
       const [pRes, sRes] = await Promise.all([
         fetch('/api/profile'),
         fetch('/api/settings')
@@ -31,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): ReactNode =
       const p = await pRes.json();
       const s = await sRes.json();
       setProfile({
-        id: p.id.toString(),
+        id: p.id?.toString() ?? '1',
         displayName: p.display_name,
         timezone: p.timezone,
         createdAt: p.created_at,
@@ -56,6 +69,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }): ReactNode =
     loadData();
   }, [loadData]);
 
+  const verifyAccess = useCallback(async (code: string) => {
+    try {
+      const res = await fetch('/api/access/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      const data = await res.json();
+      if (data.authenticated) {
+        setIsAuthenticated(true);
+        loadData();
+        return true;
+      }
+      return false;
+    } catch {
+      throw new Error("Couldn't connect to the server. Please check your connection and try again.");
+    }
+  }, [loadData]);
+
   const updateProfile = useCallback(async (patch: { displayName?: string; timezone?: string }) => {
     const res = await fetch('/api/profile', {
       method: 'PATCH',
@@ -64,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): ReactNode =
     });
     const data = await res.json();
     setProfile({
-      id: data.id.toString(),
+      id: data.id?.toString() ?? '1',
       displayName: data.display_name,
       timezone: data.timezone,
       createdAt: data.created_at,
@@ -89,6 +121,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }): ReactNode =
   }, []);
 
   const value = useMemo<AuthContextValue>(() => ({
+    isAuthenticated,
+    verifyAccess,
     profile,
     settings,
     error,
@@ -96,7 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): ReactNode =
     updateProfile,
     updateSettings,
     reloadProfile: loadData,
-  }), [profile, settings, error, isProfileLoading, updateProfile, updateSettings, loadData]);
+  }), [isAuthenticated, verifyAccess, profile, settings, error, isProfileLoading, updateProfile, updateSettings, loadData]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

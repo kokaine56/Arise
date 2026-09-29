@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
-import { AuthProvider } from '@/hooks/useAuth';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ToastProvider } from '@/hooks/useToast';
 import { AppShell } from '@/components/navigation/AppShell';
@@ -12,7 +12,19 @@ const HistoryPage = lazy(() => import('@/pages/History').then((m) => ({ default:
 const InsightsPage = lazy(() => import('@/pages/Insights').then((m) => ({ default: m.InsightsPage })));
 const SettingsPage = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.SettingsPage })));
 
+import { AccessGate } from '@/components/auth/AccessGate';
+
 const AppRoutes = () => {
+  const { isAuthenticated, isProfileLoading } = useAuth();
+
+  if (isProfileLoading || isAuthenticated === null) {
+    return <div className="fixed inset-0 flex items-center justify-center bg-background"><div className="text-muted">Loading...</div></div>;
+  }
+
+  if (!isAuthenticated) {
+    return <AccessGate />;
+  }
+
   return (
     <Routes>
       <Route element={<AppShell />}>

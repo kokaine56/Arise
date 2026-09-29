@@ -1,5 +1,6 @@
 import type { Db } from '../db.js';
 import { notFound, sendJson, type Router } from '../http.js';
+import { requireAccessSession } from '../auth.js';
 import {
   asBoolean,
   asClockOrNull,
@@ -75,12 +76,16 @@ const readSettings = async (db: Db): Promise<DbSettings> => {
 };
 
 export const registerProfileRoutes = (router: Router, db: Db): void => {
-  router.get('/api/profile', async ({ res }) => {
+  router.get('/api/profile', async (ctx) => {
+    requireAccessSession(ctx);
+    const { res } = ctx;
     const profile = await readProfile(db);
     sendJson(res, 200, toProfile(profile));
   });
 
-  router.patch('/api/profile', async ({ body, res }) => {
+  router.patch('/api/profile', async (ctx) => {
+    requireAccessSession(ctx);
+    const { body, res } = ctx;
     const patch = requireObject(body);
     const sets: any = { updated_at: new Date().toISOString() };
     
@@ -104,12 +109,16 @@ export const registerProfileRoutes = (router: Router, db: Db): void => {
     sendJson(res, 200, toProfile(updated));
   });
 
-  router.get('/api/settings', async ({ res }) => {
+  router.get('/api/settings', async (ctx) => {
+    requireAccessSession(ctx);
+    const { res } = ctx;
     const settings = await readSettings(db);
     sendJson(res, 200, toSettings(settings));
   });
 
-  router.patch('/api/settings', async ({ body, res }) => {
+  router.patch('/api/settings', async (ctx) => {
+    requireAccessSession(ctx);
+    const { body, res } = ctx;
     const patch = requireObject(body);
     const sets: any = {};
 

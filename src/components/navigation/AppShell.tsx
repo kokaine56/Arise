@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { BottomNav, SideNav, Wordmark } from '@/components/navigation/Navigation';
+import { BottomNav, SideNav } from '@/components/navigation/Navigation';
 import { LoadingStatus, DashboardSkeleton } from '@/components/ui/States';
 import { ScrollToTop } from '@/components/ui/Motion';
 import { cn } from '@/lib/format';
@@ -26,8 +26,6 @@ export const AppShell = () => {
       </a>
 
       <SideNav pathname={pathname} />
-
-      <Wordmark className="safe-t pt-4 md:hidden" />
 
       <main
         id="main"

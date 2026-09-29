@@ -16,6 +16,7 @@ import { registerGoalRoutes } from './routes/goals.js';
 import { registerRecordRoutes } from './routes/records.js';
 import { registerCategoryRoutes } from './routes/categories.js';
 import { registerProfileRoutes } from './routes/profile.js';
+import { registerAccessRoutes } from './routes/access.js';
 import { StaticHandler } from './static.js';
 
 const BODYLESS = new Set(['GET', 'HEAD', 'DELETE']);
@@ -23,6 +24,7 @@ const BODYLESS = new Set(['GET', 'HEAD', 'DELETE']);
 const buildRouter = (db: Awaited<ReturnType<typeof openDatabase>>): Router => {
   const router = new Router();
 
+  registerAccessRoutes(router);
   registerGoalRoutes(router, db);
   registerRecordRoutes(router, db);
   registerCategoryRoutes(router, db);

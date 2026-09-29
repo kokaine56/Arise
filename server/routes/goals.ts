@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Db } from '../db.js';
 import { notFound, sendJson, sendNoContent, type Router } from '../http.js';
+import { requireAccessSession } from '../auth.js';
 import { toGoalRow, type DbGoal } from '../rows.js';
 import {
   asBoolean,
@@ -39,7 +40,9 @@ const requireGoal = async (db: Db, id: string): Promise<DbGoal> => {
 };
 
 export const registerGoalRoutes = (router: Router, db: Db): void => {
-  router.get('/api/goals', async ({ query, res }) => {
+  router.get('/api/goals', async (ctx) => {
+    requireAccessSession(ctx);
+    const { query, res } = ctx;
     const includeArchived = query.get('includeArchived') === '1';
     const includePaused = query.get('includePaused') !== '0';
 
@@ -56,12 +59,16 @@ export const registerGoalRoutes = (router: Router, db: Db): void => {
     sendJson(res, 200, rows.map(toGoalRow));
   });
 
-  router.get('/api/goals/:id', async ({ params, res }) => {
+  router.get('/api/goals/:id', async (ctx) => {
+    requireAccessSession(ctx);
+    const { params, res } = ctx;
     const goal = await requireGoal(db, params['id'] as string);
     sendJson(res, 200, toGoalRow(goal));
   });
 
-  router.post('/api/goals', async ({ body, res }) => {
+  router.post('/api/goals', async (ctx) => {
+    requireAccessSession(ctx);
+    const { body, res } = ctx;
     const input = requireObject(body);
 
     const name = asString(input['name'], 'name', 60);
@@ -102,7 +109,9 @@ export const registerGoalRoutes = (router: Router, db: Db): void => {
     sendJson(res, 201, toGoalRow(savedGoal));
   });
 
-  router.patch('/api/goals/:id', async ({ params, body, res }) => {
+  router.patch('/api/goals/:id', async (ctx) => {
+    requireAccessSession(ctx);
+    const { params, body, res } = ctx;
     const id = params['id'] as string;
     const patch = requireObject(body);
     const existing = await requireGoal(db, id);
@@ -153,7 +162,9 @@ export const registerGoalRoutes = (router: Router, db: Db): void => {
     sendJson(res, 200, toGoalRow(updated));
   });
 
-  router.delete('/api/goals/:id', async ({ params, res }) => {
+  router.delete('/api/goals/:id', async (ctx) => {
+    requireAccessSession(ctx);
+    const { params, res } = ctx;
     const id = params['id'] as string;
     await requireGoal(db, id);
     await db.collection('goals').deleteOne({ id });

@@ -22,10 +22,12 @@ import type { ResolvedGoal } from '@/types/goal';
 const greetingFor = (hour: number): string => {
   if (hour < 5) return 'Good night';
   if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  if (hour < 22) return 'Good evening';
+  if (hour < 17) return 'Good afternoon';
+  if (hour < 21) return 'Good evening';
   return 'Good night';
 };
+
+import { useEffect } from 'react';
 
 export const DashboardPage = () => {
   const timeZone = useTimeZone();
@@ -34,6 +36,15 @@ export const DashboardPage = () => {
   const { labelFor, categories } = useCategories();
 
   const [editorOpen, setEditorOpen] = useState(false);
+  const [currentHour, setCurrentHour] = useState(() => hourOfDayIn(timeZone));
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const next = hourOfDayIn(timeZone);
+      setCurrentHour(prev => (prev === next ? prev : next));
+    }, 60000);
+    return () => window.clearInterval(timer);
+  }, [timeZone]);
 
   const { day, goals, isInitialLoading, error, refetch, pending, complete } = useDailyGoals(
     today,
@@ -60,7 +71,7 @@ export const DashboardPage = () => {
     <PageTransition>
       <header className="mb-6">
         <h1 className="text-headline text-foreground">
-          {greetingFor(hourOfDayIn(timeZone))}
+          {greetingFor(currentHour)}
         </h1>
         <p className="mt-1 text-body text-muted">
           {formatDateLong(today)}
