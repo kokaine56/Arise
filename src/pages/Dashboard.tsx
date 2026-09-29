@@ -11,7 +11,7 @@ import { DashboardSkeleton, EmptyState, LoadingStatus } from '@/components/ui/St
 import { ErrorState } from '@/components/ui/Feedback';
 import { PageTransition } from '@/components/ui/Motion';
 import { IconPlus, IconToday } from '@/components/ui/Icon';
-import { formatDateLong, hourOfDayIn } from '@/lib/date/civil';
+import { formatDateLong } from '@/lib/date/civil';
 import { asPercent, cn, pluralise } from '@/lib/format';
 import type { ResolvedGoal } from '@/types/goal';
 
@@ -36,15 +36,15 @@ export const DashboardPage = () => {
   const { labelFor, categories } = useCategories();
 
   const [editorOpen, setEditorOpen] = useState(false);
-  const [currentHour, setCurrentHour] = useState(() => hourOfDayIn(timeZone));
+  const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      const next = hourOfDayIn(timeZone);
+      const next = new Date().getHours();
       setCurrentHour(prev => (prev === next ? prev : next));
     }, 60000);
     return () => window.clearInterval(timer);
-  }, [timeZone]);
+  }, []);
 
   const { day, goals, isInitialLoading, error, refetch, pending, complete } = useDailyGoals(
     today,
