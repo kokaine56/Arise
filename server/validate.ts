@@ -7,7 +7,7 @@
  * the route handlers from having to reason about `unknown`.
  */
 
-import { badRequest } from './http.ts';
+import { badRequest } from './http.js';
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);

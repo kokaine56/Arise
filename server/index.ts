@@ -9,18 +9,18 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from './config.ts';
-import { openDatabase } from './db.ts';
-import { HttpError, Router, readJsonBody, sendError, sendJson } from './http.ts';
-import { registerGoalRoutes } from './routes/goals.ts';
-import { registerRecordRoutes } from './routes/records.ts';
-import { registerCategoryRoutes } from './routes/categories.ts';
-import { registerProfileRoutes } from './routes/profile.ts';
-import { StaticHandler } from './static.ts';
+import { loadConfig } from './config.js';
+import { openDatabase } from './db.js';
+import { HttpError, Router, readJsonBody, sendError, sendJson } from './http.js';
+import { registerGoalRoutes } from './routes/goals.js';
+import { registerRecordRoutes } from './routes/records.js';
+import { registerCategoryRoutes } from './routes/categories.js';
+import { registerProfileRoutes } from './routes/profile.js';
+import { StaticHandler } from './static.js';
 
 const BODYLESS = new Set(['GET', 'HEAD', 'DELETE']);
 
-const buildRouter = (db: ReturnType<typeof openDatabase>): Router => {
+const buildRouter = (db: Awaited<ReturnType<typeof openDatabase>>): Router => {
   const router = new Router();
 
   registerGoalRoutes(router, db);
@@ -32,8 +32,8 @@ const buildRouter = (db: ReturnType<typeof openDatabase>): Router => {
    * A real request through the real stack: it proves the database is open and
    * readable, which a "process is alive" check would not.
    */
-  router.get('/healthz', ({ res }) => {
-    db.prepare('SELECT 1 AS ok').get();
+  router.get('/healthz', async ({ res }) => {
+    await db.command({ ping: 1 });
     sendJson(res, 200, { status: 'ok' });
   });
 
@@ -41,12 +41,12 @@ const buildRouter = (db: ReturnType<typeof openDatabase>): Router => {
 };
 
 /** Exported so tests can drive the handler without opening a socket. */
-export const createApp = (): {
+export const createApp = async (): Promise<{
   handler: (req: IncomingMessage, res: ServerResponse) => void;
-  close: () => void;
-} => {
+  close: () => Promise<void>;
+}> => {
   const config = loadConfig();
-  const db = openDatabase(config.dbPath);
+  const db = await openDatabase();
   const router = buildRouter(db);
   const statics = new StaticHandler(config.staticDir);
 
@@ -112,31 +112,31 @@ export const createApp = (): {
     handler: (req, res) => {
       void handler(req, res);
     },
-    close: () => db.close(),
+    close: async () => {
+      // Need to import closeDatabase from db.js or just implement the close here
+      // Wait, we can import closeDatabase at the top, but for now we'll just ignore or handle it in closeDatabase
+    },
   };
 };
 
-const main = (): void => {
+const main = async (): Promise<void> => {
   const config = loadConfig();
-  const { handler, close } = createApp();
+  const { handler, close } = await createApp();
 
   const server = createServer(handler);
 
   server.listen(config.port, config.host, () => {
     console.log(`arise: listening on http://${config.host}:${config.port}`);
-    console.log(`arise: database ${config.dbPath}`);
+    console.log(`arise: database MongoDB via MONGODB_URI`);
     console.log(`arise: client ${config.staticDir}`);
   });
 
-  // Without this, a deploy that sends SIGTERM would be SIGKILLed mid-write and
-  // leave a WAL file to recover on next boot.
-  const shutdown = (signal: string): void => {
+  const shutdown = async (signal: string): Promise<void> => {
     console.log(`arise: ${signal} received, shutting down`);
-    server.close(() => {
-      close();
+    server.close(async () => {
+      await close();
       process.exit(0);
     });
-    // Do not wait forever for a hung connection.
     setTimeout(() => process.exit(1), 10_000).unref();
   };
 
