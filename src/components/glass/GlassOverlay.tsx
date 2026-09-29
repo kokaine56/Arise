@@ -127,9 +127,9 @@ export const GlassOverlay = ({
   return (
     <AnimatePresence>
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
+        <div className="fixed inset-0 z-50 pointer-events-none flex items-end justify-center sm:items-center sm:p-6">
           <motion.div
-            className="scrim"
+            className="scrim pointer-events-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -149,10 +149,10 @@ export const GlassOverlay = ({
             exit={reduceMotion ? { opacity: 0 } : isSheet ? { y: '100%' } : { opacity: 0, scale: 0.98, y: 6 }}
             transition={{ duration: reduceMotion ? 0 : 0.26, ease: [0.32, 0.72, 0, 1] }}
             className={cn(
-              'glass glass--strong relative flex max-h-[90dvh] w-full flex-col overflow-hidden',
+              'glass glass--strong flex flex-col overflow-hidden pointer-events-auto',
               isSheet
-                ? 'safe-b rounded-t-[var(--radius-glass-lg)] sm:max-w-lg sm:rounded-[var(--radius-glass-lg)]'
-                : 'rounded-[var(--radius-glass-lg)] sm:max-w-md',
+                ? 'fixed bottom-0 left-0 right-0 w-full max-h-[85dvh] safe-b rounded-t-[var(--radius-glass-lg)] sm:relative sm:max-h-[90dvh] sm:max-w-lg sm:rounded-[var(--radius-glass-lg)]'
+                : 'fixed left-4 right-4 top-1/2 -translate-y-1/2 max-h-[90dvh] rounded-[var(--radius-glass-lg)] sm:relative sm:top-auto sm:-translate-y-0 sm:max-w-md w-full',
             )}
           >
             {/* Drag affordance: a sheet should look graspable. */}

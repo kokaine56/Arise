@@ -10,6 +10,14 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     target: 'es2022',
     cssTarget: 'chrome111',
@@ -21,11 +29,6 @@ export default defineConfig({
           motion: ['framer-motion'],
         },
       },
-    },
-  },
-  server: {
-    proxy: {
-      '/api': 'http://localhost:8080',
     },
   },
 });
