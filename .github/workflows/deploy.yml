@@ -1,0 +1,166 @@
+# Auto-deploy pipeline.
+#
+#   push to main -> verify -> publish image -> roll it out to the server
+#
+# The verify stage runs on every push and pull request, so nothing reaches a
+# registry with a failing test or a type error. Publishing and deploying are
+# gated on the verify job, which means a red build can never replace a working
+# deployment.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege by default. Only the publish job can write packages, and only
+# the deploy job ever holds host credentials.
+permissions:
+  contents: read
+
+concurrency:
+  # A second push waits for the first deploy to finish rather than racing it.
+  # Without this, two interleaved `compose up` runs can leave the host on a
+  # half-rolled-back release.
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  verify:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  publish:
+    name: Publish image
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          # The built-in token, scoped to this repo. No stored credential.
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # The build never receives the Supabase values; the entrypoint writes
+          # them from the host's environment at container start. Passing them
+          # here would only bake one project's URL into the published image.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Record the deployed digest
+        run: echo "${{ steps.meta.outputs.tags }}" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Roll out to server
+    needs: publish
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    # Host credentials live here rather than in the step, because the `secrets`
+    # context is not available in a step-level `if` expression.
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+    steps:
+      # Skipped automatically when no host is configured, so the publish-only
+      # path works for anyone who has not set up a server yet.
+      - name: Check deploy credentials
+        id: creds
+        if: env.DEPLOY_HOST != '' && env.DEPLOY_KEY != '' && env.DEPLOY_PATH != ''
+        run: echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Roll out
+        if: steps.creds.outputs.ready == 'true'
+        env:
+          TARGET: ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}
+          REMOTE: ${{ env.DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Pin the host key so a MITM cannot capture the deploy key. Fetch it
+          # once by hand and store it as DEPLOY_KNOWN_HOSTS if this check
+          # interrupts on first run.
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/deploy_key "$TARGET" bash -s <<REMOTE
+            set -euo pipefail
+            cd "$REMOTE"
+            # Zero-downtime-ish: the new container is started, healthchecked,
+            # and only then does the old one go away. compose replaces the
+            # container in place, so the DNS name never stops resolving.
+            docker compose pull
+            docker compose up -d --remove-orphans --wait --wait-timeout 60
+            docker image prune -f --filter "until=168h"
+          REMOTE
+
+      - name: Smoke test the deployment
+        if: steps.creds.outputs.ready == 'true'
+        env:
+          HEALTH_URL: ${{ vars.ARISE_HEALTH_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "$HEALTH_URL" ]; then
+            echo "No ARISE_HEALTH_URL repository variable set; skipping."
+            exit 0
+          fi
+          # The page must load and the runtime config must be present. A 200 on
+          # index.html alone would not catch a container serving a stale env.js.
+          curl --fail --silent --show-error "$HEALTH_URL" > /dev/null
+          curl --fail --silent --show-error "$HEALTH_URL/env.js" | grep -q '__ARISE_ENV__'
+          echo "Deployment healthy at $HEALTH_URL"

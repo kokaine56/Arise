@@ -1,0 +1,52 @@
+# Production deployment descriptor.
+#
+# The CI workflow SSHes into the host and runs exactly these two commands, so
+# this file is the whole deploy contract:
+#
+#     docker compose pull && docker compose up -d --remove-orphans
+#
+# Put the Supabase values in a .env file next to this one on the host. Compose
+# reads it automatically, and the values reach the container as real environment
+# variables, which the entrypoint turns into env.js at boot.
+
+services:
+  arise:
+    # GHCR image published by .github/workflows/deploy.yml. Override
+    # ARISE_IMAGE to pin a specific tag or sha during a rollback.
+    image: ${ARISE_IMAGE:-ghcr.io/arise/arise:latest}
+    container_name: arise
+    restart: unless-stopped
+
+    # Runtime configuration. Read by docker/entrypoint.sh and served to the
+    # browser as /env.js.
+    environment:
+      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:?set VITE_SUPABASE_URL in .env on the host}
+      VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:?set VITE_SUPABASE_ANON_KEY in .env on the host}
+      VITE_DEBUG_SUPABASE: ${VITE_DEBUG_SUPABASE:-false}
+
+    ports:
+      # Bound to localhost: put a TLS-terminating reverse proxy or tunnel in
+      # front rather than exposing a plain HTTP port to the internet.
+      - "127.0.0.1:${ARISE_PORT:-8080}:8080"
+
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+    # nginx-unprivileged keeps its pid and all temp paths under /tmp, so this
+    # tmpfs covers everything it needs to write. It also means container
+    # restarts touch no disk.
+    tmpfs:
+      - /tmp
+
+    security_opt:
+      - no-new-privileges:true
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

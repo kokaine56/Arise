@@ -56,6 +56,131 @@ CHECK constraints, indexes, and `updated_at` triggers.
 
 ---
 
+## Deployment
+
+Arise is a static single-page app, so the deployed artifact is just a file server. The image contains
+no Node runtime and no application secrets.
+
+### Runtime configuration
+
+Vite inlines `import.meta.env` at **build** time, which normally means one image per environment.
+Arise avoids that: `docker/entrypoint.sh` writes a small `/env.js` from real environment variables
+at container start, and the app reads it at startup.
+
+```
+browser -> /env.js  ->  window.__ARISE_ENV__  ->  wins over import.meta.env
+```
+
+The practical consequence is that the same published image can be promoted from staging to
+production, or repointed at a different Supabase project, by restarting the container with
+different environment variables. No rebuild, no CI run.
+
+`docker/entrypoint.sh` validates each value against a strict allowlist and refuses to start on an
+unexpected one. This is deliberate: these values are written into a `<script>` served from the app's
+own origin, so validating is safer than escaping — a bad value stops the container with a clear
+message instead of shipping a broken bundle.
+
+An empty value is allowed and renders the in-app setup screen, which is the right behaviour for a
+fresh deploy rather than a crash loop.
+
+### The image
+
+| Stage | Base | Purpose |
+| --- | --- | --- |
+| `build` | `node:22-alpine` | `npm ci`, then `tsc -b && vite build` |
+| `runtime` | `nginxinc/nginx-unprivileged:1.27-alpine` | Serves `dist` as a SPA on port 8080, non-root |
+
+Notable details:
+
+- `npm ci` in its own layer, so source edits do not re-resolve the dependency tree.
+- Supabase values are passed as `ARG`, never `ENV`, keeping them out of `docker history`.
+- `.dockerignore` excludes `.env*` and `*.key`, so a local secret file can never reach an image
+  layer or the registry cache.
+- `nginx -t` runs during the build, so a malformed config fails CI rather than production.
+- `try_files $uri $uri/ /index.html` is what makes a hard refresh on `/goals` or `/settings` work.
+- `/assets/*` is `immutable` (Vite hashes filenames); `index.html` is `no-cache`; `env.js` is
+  `no-store`, because a cached `env.js` points a new container at the previous Supabase project.
+- `/healthz` is a real request through the real config, used by the `HEALTHCHECK` and the deploy job.
+
+### Local run
+
+```bash
+docker build -t arise:local .
+docker run --rm -p 8080:8080 \
+  -e VITE_SUPABASE_URL=https://yourref.supabase.co \
+  -e VITE_SUPABASE_ANON_KEY=your-anon-key \
+  arise:local
+```
+
+Or with compose, which is also the production path:
+
+```bash
+cp .env.example .env    # fill in the two Supabase values
+docker compose up -d --build
+```
+
+### Auto-deploy
+
+`.github/workflows/deploy.yml` runs on every push and pull request:
+
+```
+verify  ──  lint · typecheck · test · build
+   │         (every push and PR)
+   ▼
+publish ──  push image to GHCR
+   │         (main only, needs `packages: write`)
+   ▼
+deploy  ──  ssh to the host, pull and roll out
+            (main only, needs the DEPLOY_* secrets)
+```
+
+A failing verify job stops the pipeline, so a broken build can never replace a working deployment.
+The `concurrency` group serialises deploys so two pushes cannot interleave into a half-rolled-back
+release. Publishing and deploying skip themselves when the required secrets are absent, so the
+publish-only path works before you have a server.
+
+**Repository secrets** (Settings → Secrets):
+
+| Secret | Purpose |
+| --- | --- |
+| `DEPLOY_HOST` | Server hostname or IP |
+| `DEPLOY_USER` | SSH user with docker access |
+| `DEPLOY_KEY` | Private key, added to that user's `authorized_keys` |
+| `DEPLOY_PATH` | Directory on the host holding `compose.yaml` and `.env` |
+
+**Repository variable** (Settings → Secrets and variables → Actions → Variables):
+
+| Variable | Purpose |
+| --- | --- |
+| `ARISE_HEALTH_URL` | Public URL; enables the post-deploy smoke test |
+
+**First-time host setup** — one command, on the server:
+
+```bash
+mkdir -p /opt/arise && cd /opt/arise
+# copy compose.yaml from the repo, then:
+printf 'VITE_SUPABASE_URL=https://yourref.supabase.co\nVITE_SUPABASE_ANON_KEY=your-anon-key\n' > .env
+chmod 600 .env
+docker compose pull && docker compose up -d
+```
+
+`compose.yaml` binds to `127.0.0.1` deliberately. Put a TLS-terminating reverse proxy (Caddy,
+nginx, a tunnel) in front of it rather than exposing a plain HTTP port.
+
+The deploy job ends with a smoke test that checks both `/` and `/env.js` — a 200 on the HTML alone
+would not catch a container serving stale runtime config.
+
+### Rollback
+
+Every image is tagged with its commit SHA as well as `latest`, and the deploy job prints the tags
+it published. To roll back, set `ARISE_IMAGE` in the host's `.env` to the previous tag and restart:
+
+```bash
+docker compose up -d
+```
+
+---
+
 ## Domain model
 
 The distinction the whole codebase is built around:
