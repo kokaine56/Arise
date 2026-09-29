@@ -74,7 +74,7 @@ export const SegmentedControl = <T extends string | number>({
     <div
       role="radiogroup"
       aria-label={label}
-      className={cn('glass--sunken flex w-full gap-1 rounded-[var(--radius-control)] p-1', className)}
+      className={cn('glass--sunken flex flex-wrap w-full gap-1 rounded-[var(--radius-control)] p-1', className)}
     >
       {options.map((option) => {
         const selected = option.value === value;
@@ -87,7 +87,7 @@ export const SegmentedControl = <T extends string | number>({
             aria-label={option.ariaLabel}
             onClick={() => onChange(option.value)}
             className={cn(
-              'relative flex-1 rounded-[calc(var(--radius-control)-0.25rem)] px-2 text-center',
+              'relative flex-auto min-w-fit whitespace-nowrap rounded-[calc(var(--radius-control)-0.25rem)] px-3 text-center',
               'text-caption font-medium transition-colors duration-200',
               height,
               'grid place-items-center',
@@ -106,7 +106,7 @@ export const SegmentedControl = <T extends string | number>({
                 aria-hidden
               />
             ) : null}
-            <span className="relative z-10 truncate">{option.label}</span>
+            <span className="relative z-10">{option.label}</span>
           </button>
         );
       })}
