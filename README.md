@@ -26,9 +26,7 @@ Without valid credentials the app shows a setup screen rather than a broken sign
 
 | Variable | Purpose |
 | --- | --- |
-| `VITE_SUPABASE_URL` | Your project URL |
-| `VITE_SUPABASE_ANON_KEY` | The public anon key |
-| `VITE_SUPABASE_DEBUG` | Optional; enables devtools output |
+| `APP_ACCESS_CODE` | (Required) 4-digit code to access the application |
 
 ### Database
 

@@ -6,6 +6,7 @@
  * "app plus database plus auth provider" to a single container with a volume.
  */
 
+import 'dotenv/config';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,11 +43,14 @@ const buildRouter = (db: Awaited<ReturnType<typeof openDatabase>>): Router => {
   return router;
 };
 
+import { getAccessCode } from './auth.js';
+
 /** Exported so tests can drive the handler without opening a socket. */
 export const createApp = async (): Promise<{
   handler: (req: IncomingMessage, res: ServerResponse) => void;
   close: () => Promise<void>;
 }> => {
+  getAccessCode(); // Validate on boot
   const config = loadConfig();
   const db = await openDatabase();
   const router = buildRouter(db);
