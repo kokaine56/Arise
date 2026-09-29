@@ -1,19 +1,11 @@
 /**
  * Database row → API row.
  *
- * The client already has row types and mappers written against the shape it got
- * from Supabase, so the API deliberately emits that same shape rather than
- * SQLite's native one. Two conversions matter:
+ * The API deliberately emits the expected legacy shape.
  *
- *   - booleans. SQLite has no boolean type; `is_active` is stored as 0/1 and
- *     would reach the client as a number, where `if (row.is_active)` still
- *     happens to work but `row.is_active === false` does not. They are converted
- *     back here so the client's conditionals mean what they look like.
- *   - `frequency_config`, stored as TEXT so the schema can CHECK json_valid(),
- *     parsed back to an object because that is what the scheduler consumes.
- *
- * Keeping this in one place is what stops SQLite's storage details from leaking
- * into the domain layer.
+ *   - booleans: `is_active` is stored as 0/1 (legacy SQLite format) and
+ *     converted back here so the client's conditionals mean what they look like.
+ *   - `frequency_config`: stored as an object or JSON string.
  */
 
 export interface DbGoal {
@@ -26,7 +18,7 @@ export interface DbGoal {
   target_time: string | null;
   category_id: string | null;
   frequency_type: string;
-  frequency_config: string;
+  frequency_config: string | Record<string, unknown>;
   start_date: string;
   end_date: string | null;
   reminder_time: string | null;
@@ -49,13 +41,11 @@ export interface DbRecord {
   updated_at: string;
 }
 
-export const parseConfig = (raw: string): unknown => {
+export const parseConfig = (raw: string | Record<string, unknown>): unknown => {
+  if (typeof raw === 'object' && raw !== null) return raw;
   try {
     return JSON.parse(raw);
   } catch {
-    // The column is CHECK json_valid(), so this is unreachable for any row that
-    // exists. Returning an empty object rather than throwing keeps a corrupt
-    // value from taking down the whole dashboard.
     return {};
   }
 };

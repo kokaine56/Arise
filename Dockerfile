@@ -44,5 +44,5 @@ WORKDIR /app/server
 
 EXPOSE 8080
 
-# Run the compiled express server
-CMD ["node", "server.js"]
+# Run the compiled API server
+CMD ["node", "index.js"]
