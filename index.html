@@ -42,6 +42,13 @@
     <noscript>
       Arise needs JavaScript enabled to show your daily health checklist.
     </noscript>
+    <!--
+      Runtime configuration, written by the container's entrypoint from real
+      environment variables. It 404s harmlessly in dev, where the app falls
+      back to Vite's import.meta.env. Loaded before the bundle so the values are
+      present on the first read, and never cached.
+    -->
+    <script src="/env.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
