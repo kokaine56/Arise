@@ -19,12 +19,13 @@ FROM node:22-alpine AS server-build
 
 WORKDIR /app/server
 
-# Install backend dependencies
+# Install backend dependencies (including typescript and ts-node)
 COPY server/package.json ./
 RUN npm install
 
-# Copy server source
+# Copy server source and compile
 COPY server/ ./
+RUN npx tsc
 
 # ---------------------------------------------------------------------------
 # Runtime
@@ -43,5 +44,5 @@ WORKDIR /app/server
 
 EXPOSE 8080
 
-# Run the express server (using ts-node for simplicity since it's already in dependencies)
-CMD ["npx", "ts-node", "server.ts"]
+# Run the compiled express server
+CMD ["node", "server.js"]
