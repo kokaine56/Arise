@@ -149,7 +149,7 @@ export const GlassOverlay = ({
             exit={reduceMotion ? { opacity: 0 } : isSheet ? { y: '100%' } : { opacity: 0, scale: 0.98, y: 6 }}
             transition={{ duration: reduceMotion ? 0 : 0.26, ease: [0.32, 0.72, 0, 1] }}
             className={cn(
-              'glass glass--strong flex flex-col overflow-hidden pointer-events-auto',
+              'glass glass--strong flex flex-col overflow-hidden pointer-events-auto z-50',
               isSheet
                 ? 'fixed bottom-0 left-0 right-0 w-full max-h-[85dvh] safe-b rounded-t-[var(--radius-glass-lg)] sm:relative sm:max-h-[90dvh] sm:max-w-lg sm:rounded-[var(--radius-glass-lg)]'
                 : 'fixed left-4 right-4 top-1/2 -translate-y-1/2 max-h-[90dvh] rounded-[var(--radius-glass-lg)] sm:relative sm:top-auto sm:-translate-y-0 sm:max-w-md w-full',
