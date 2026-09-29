@@ -27,12 +27,12 @@ export const AppShell = () => {
 
       <SideNav pathname={pathname} />
 
-      <Wordmark className="fixed left-1/2 top-4 z-20 -translate-x-1/2 md:hidden" />
+      <Wordmark className="safe-t pt-4 md:hidden" />
 
       <main
         id="main"
         className={cn(
-          'mx-auto w-full max-w-xl px-4 pt-16 pb-32',
+          'mx-auto w-full max-w-xl px-4 pt-2 pb-32',
           'sm:px-6',
           'md:pl-[76px] md:pt-10 md:pb-16',
         )}
