@@ -75,6 +75,10 @@ The practical consequence is that the same published image can be promoted from 
 production, or repointed at a different Supabase project, by restarting the container with
 different environment variables. No rebuild, no CI run.
 
+`public/env.js` is a checked-in placeholder holding an empty object. It gives dev and any
+non-container static host a defined "unconfigured" state, and it stops `/env.js` 404ing in dev.
+The container overwrites it at boot.
+
 `docker/entrypoint.sh` validates each value against a strict allowlist and refuses to start on an
 unexpected one. This is deliberate: these values are written into a `<script>` served from the app's
 own origin, so validating is safer than escaping — a bad value stops the container with a clear
@@ -309,7 +313,8 @@ npm test
 | `tests/resolve.test.ts` | Single-goal and whole-day resolution, history, completion planning |
 | `tests/analytics.test.ts` | Streaks, totals, category breakdown, trends, consistency |
 | `tests/validation.test.ts` | Goal form schema and field error reporting |
+| `tests/env.test.ts` | Runtime vs build-time configuration precedence |
 
 The client is deliberately thin over these functions, so the suite does not need a browser or a
-database. The parts it does not cover — Supabase queries, RLS enforcement, and the React
-components — need a real project to verify; there is no mock data layer to hide behind.
+database. The parts it does not cover — Supabase queries, RLS enforcement, the React components, and
+the container image itself — need a real project or a real Docker host to verify.

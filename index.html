@@ -36,19 +36,29 @@
         }
       })();
     </script>
+
+    <!--
+      Runtime configuration, written by the container's entrypoint from real
+      environment variables so one image can serve any Supabase project.
+
+      This stays in the head, ahead of the bundle, and is a blocking classic
+      script on purpose. Vite hoists the module entry point into the head during
+      the build and leaves tags in the body behind, so a tag written next to
+      src/main.tsx ends up *after* the bundle in dist/. That happens to work only
+      because module scripts are deferred — a parser-blocking script in the head
+      cannot lose that race, whatever Vite does to the markup.
+
+      Never add type="module": Vite would then try to bundle /env.js, and the
+      file only exists at runtime. That build emits "can't be bundled without
+      type=module attribute" and, worse, the config would never load.
+    -->
+    <script src="/env.js"></script>
   </head>
   <body>
     <div id="root"></div>
     <noscript>
       Arise needs JavaScript enabled to show your daily health checklist.
     </noscript>
-    <!--
-      Runtime configuration, written by the container's entrypoint from real
-      environment variables. It 404s harmlessly in dev, where the app falls
-      back to Vite's import.meta.env. Loaded before the bundle so the values are
-      present on the first read, and never cached.
-    -->
-    <script src="/env.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

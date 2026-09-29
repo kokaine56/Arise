@@ -51,12 +51,20 @@ COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
 RUN nginx -t
 
-COPY --from=build /app/dist /usr/share/nginx/html
+# `--chown` is required, not cosmetic. The entrypoint runs as `nginx` and
+# rewrites env.js on every container start, so it needs write access to this
+# tree. A plain COPY leaves the files root-owned, which turns every boot into a
+# "Permission denied" crash.
+COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
 # Runs before nginx starts: writes /usr/share/nginx/html/env.js from the real
 # environment. The 40- prefix orders it after the image's own 10-40 scripts.
-COPY docker/entrypoint.sh /docker-entrypoint.d/40-arise-env.sh
-RUN chmod +x /docker-entrypoint.d/40-arise-env.sh
+#
+# `--chmod` rather than a following `RUN chmod +x`: this base image already sets
+# `USER nginx`, so a RUN step executes unprivileged and cannot modify the
+# root-owned file that COPY just created. Setting the mode during the copy needs
+# no privilege and saves a layer.
+COPY --chmod=0755 docker/entrypoint.sh /docker-entrypoint.d/40-arise-env.sh
 
 USER nginx
 
