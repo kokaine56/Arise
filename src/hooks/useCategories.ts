@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useAsync } from '@/hooks/useAsync';
-import { useAuth } from '@/hooks/useAuth';
 import { listCategories, type Category } from '@/services/categories/categories.service';
 
 export interface CategoriesController {
@@ -18,8 +17,7 @@ export interface CategoriesController {
  * `undefined` rather than a placeholder string, so nothing renders "undefined".
  */
 export const useCategories = (): CategoriesController => {
-  const { status } = useAuth();
-  const query = useAsync<Category[]>(() => listCategories(), [], { enabled: status === 'signed-in' });
+  const query = useAsync<Category[]>(() => listCategories(), []);
 
   const categories = useMemo(() => query.data ?? [], [query.data]);
 

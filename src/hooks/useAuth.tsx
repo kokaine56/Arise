@@ -3,12 +3,7 @@ import { DEFAULT_SETTINGS, type AppSettings, type Profile } from '@/types/profil
 import { detectTimeZone, todayIn, type CivilDate } from '@/lib/date/civil';
 import { type AppError } from '@/lib/errors';
 
-export type AuthStatus = 'loading' | 'signed-out' | 'signed-in';
-
 interface AuthContextValue {
-  status: AuthStatus;
-  session: any | null;
-  user: any | null;
   profile: Profile | null;
   settings: AppSettings;
   error: AppError | null;
@@ -16,45 +11,92 @@ interface AuthContextValue {
   updateProfile: (patch: { displayName?: string; timezone?: string }) => Promise<void>;
   updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
   reloadProfile: () => void;
-  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const FAKE_USER = { id: 'local-user', email: 'guest@local' };
-
 export const AuthProvider = ({ children }: { children: ReactNode }): ReactNode => {
-  const [status, setStatus] = useState<AuthStatus>('signed-in');
-  const [profile, setProfile] = useState<Profile | null>({
-    id: 'local-user',
-    displayName: 'Guest',
-    timezone: detectTimeZone(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  });
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [error, setError] = useState<AppError | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+  const loadData = useCallback(async () => {
+    setIsProfileLoading(true);
+    try {
+      const [pRes, sRes] = await Promise.all([
+        fetch('/api/profile'),
+        fetch('/api/settings')
+      ]);
+      const p = await pRes.json();
+      const s = await sRes.json();
+      setProfile({
+        id: p.id.toString(),
+        displayName: p.display_name,
+        timezone: p.timezone,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at
+      });
+      setSettings({
+        weekStartsOn: s.week_starts_on,
+        notificationsEnabled: s.notifications_enabled,
+        defaultReminderTime: s.default_reminder_time,
+        defaultUnit: s.default_unit,
+        hideEmptyHistoryDays: s.hide_empty_history_days
+      });
+      setError(null);
+    } catch (e: any) {
+      setError(e);
+    } finally {
+      setIsProfileLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const updateProfile = useCallback(async (patch: { displayName?: string; timezone?: string }) => {
-    setProfile(p => p ? { ...p, ...patch, updatedAt: new Date().toISOString() } : p);
+    const res = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch)
+    });
+    const data = await res.json();
+    setProfile({
+      id: data.id.toString(),
+      displayName: data.display_name,
+      timezone: data.timezone,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    });
   }, []);
 
   const updateSettings = useCallback(async (patch: Partial<AppSettings>) => {
-    setSettings(s => ({ ...s, ...patch }));
+    const res = await fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch)
+    });
+    const data = await res.json();
+    setSettings({
+      weekStartsOn: data.week_starts_on,
+      notificationsEnabled: data.notifications_enabled,
+      defaultReminderTime: data.default_reminder_time,
+      defaultUnit: data.default_unit,
+      hideEmptyHistoryDays: data.hide_empty_history_days
+    });
   }, []);
 
   const value = useMemo<AuthContextValue>(() => ({
-    status,
-    session: { access_token: 'fake-token', user: FAKE_USER },
-    user: FAKE_USER,
     profile,
     settings,
-    error: null,
-    isProfileLoading: false,
+    error,
+    isProfileLoading,
     updateProfile,
     updateSettings,
-    reloadProfile: () => {},
-    signOut: async () => setStatus('signed-out'),
-  }), [status, profile, settings, updateProfile, updateSettings]);
+    reloadProfile: loadData,
+  }), [profile, settings, error, isProfileLoading, updateProfile, updateSettings, loadData]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
