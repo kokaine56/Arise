@@ -32,7 +32,6 @@ const d = (date: string) => date as CivilDate;
 /** Scheduling only needs a few fields; build a full goal for readability. */
 const goal = (overrides: Partial<Goal> = {}): Goal => ({
   id: 'g1',
-  userId: 'u1',
   name: 'Walk',
   description: null,
   type: 'checkbox',

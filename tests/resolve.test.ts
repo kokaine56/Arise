@@ -26,7 +26,6 @@ const TZ = 'UTC';
 
 const goal = (overrides: Partial<Goal> = {}): Goal => ({
   id: 'g1',
-  userId: 'u1',
   name: 'Goal',
   description: null,
   type: 'checkbox',
@@ -53,7 +52,6 @@ const measured = (type: GoalType, target: number, unit: string | null = null): G
 const record = (overrides: Partial<DailyRecord> = {}): DailyRecord => ({
   id: 'r1',
   goalId: 'g1',
-  userId: 'u1',
   date: DATE,
   completed: false,
   actualValue: null,

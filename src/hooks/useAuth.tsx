@@ -117,7 +117,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }): ReactNode =
             : detectTimeZone();
           setProfile({
             id: profileRow.data.id,
-            userId: profileRow.data.user_id,
             displayName: profileRow.data.display_name,
             timezone,
             createdAt: profileRow.data.created_at,

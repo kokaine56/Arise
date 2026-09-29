@@ -146,7 +146,7 @@ export const toDailyRecord = (row: DailyGoalRecordRow): DailyRecord => ({
 /* -------------------------------------------------------------------------- */
 
 export const toProfile = (row: ProfileRow): Profile => ({
-  id: row.id,
+  id: String(row.id),
   displayName: row.display_name,
   timezone: row.timezone,
   createdAt: row.created_at,

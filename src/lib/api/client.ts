@@ -61,7 +61,7 @@ const request = async <T>(method: string, path: string, body?: unknown): Promise
       // added later; harmless without one.
       credentials: 'same-origin',
       headers: body === undefined ? {} : { 'content-type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      ...(body !== undefined && { body: JSON.stringify(body) }),
     });
   } catch (cause) {
     // fetch only rejects on a transport failure, so this is "server not

@@ -21,7 +21,6 @@ const options = { date: TUE, timeZone: TZ, now: new Date('2026-09-29T12:00:00Z')
 
 const goal = (overrides: Partial<Goal> = {}): Goal => ({
   id: 'g1',
-  userId: 'u1',
   name: 'Goal',
   description: null,
   type: 'checkbox',
@@ -45,7 +44,6 @@ const goal = (overrides: Partial<Goal> = {}): Goal => ({
 const rec = (goalId: string, date: CivilDate, completed = true): DailyRecord => ({
   id: `${goalId}-${date}`,
   goalId,
-  userId: 'u1',
   date,
   completed,
   actualValue: null,

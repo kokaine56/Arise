@@ -31,7 +31,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
 };
 
 export interface Profile {
-  id: number;
+  id: string;
   displayName: string;
   timezone: string;
   createdAt: string;
