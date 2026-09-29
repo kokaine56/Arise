@@ -121,7 +121,6 @@ export const FREQUENCY_LABELS: Record<FrequencyType, string> = {
  */
 export interface Goal {
   id: string;
-  userId: string;
   name: string;
   description: string | null;
   type: GoalType;

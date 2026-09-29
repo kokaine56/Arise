@@ -9,8 +9,8 @@
 
 import { parseCivilDate, toCivilDate } from '@/lib/date/civil';
 import { isValidClock } from '@/lib/date/schedule';
-import type { Json } from '@/lib/supabase/database.types';
-import type { DailyGoalRecordRow, GoalRow, ProfileRow, UserSettingRow } from '@/lib/supabase/database.types';
+import type { Json } from '@/lib/api/types';
+import type { DailyGoalRecordRow, GoalRow, ProfileRow, UserSettingRow } from '@/lib/api/types';
 import type { DailyRecord } from '@/types/dailyRecord';
 import type { AppSettings, Profile } from '@/types/profile';
 import type { FrequencyConfig, Goal, GoalType, IsoDay } from '@/types/goal';
@@ -106,7 +106,6 @@ export const serialiseFrequencyConfig = (config: FrequencyConfig): Json => {
 
 export const toGoal = (row: GoalRow): Goal => ({
   id: row.id,
-  userId: row.user_id,
   name: row.name,
   description: asString(row.description),
   type: isGoalType(row.goal_type) ? row.goal_type : 'checkbox',
@@ -133,7 +132,6 @@ export const toGoal = (row: GoalRow): Goal => ({
 export const toDailyRecord = (row: DailyGoalRecordRow): DailyRecord => ({
   id: row.id,
   goalId: row.goal_id,
-  userId: row.user_id,
   date: parseCivilDate(row.date),
   completed: row.completed,
   actualValue: asNumber(row.actual_value),
@@ -149,7 +147,6 @@ export const toDailyRecord = (row: DailyGoalRecordRow): DailyRecord => ({
 
 export const toProfile = (row: ProfileRow): Profile => ({
   id: row.id,
-  userId: row.user_id,
   displayName: row.display_name,
   timezone: row.timezone,
   createdAt: row.created_at,

@@ -1,70 +1,47 @@
 import { toAppError } from '@/lib/errors';
-import { requireSupabase } from '@/lib/supabase/client';
+import { api } from '@/lib/api/client';
+import type { ProfileRow, UserSettingRow } from '@/lib/api/types';
 import { toProfile, toSettings } from '@/services/mappers';
 import type { AppSettings, Profile, WeekStart } from '@/types/profile';
 
 /**
- * The profile row is created by a database trigger on signup, so this is a
- * read-or-create rather than an insert. RLS scopes it to the signed-in user.
+ * There is exactly one profile and one settings row, seeded by the migration, so
+ * these are reads and updates — never a create, and never a question of which
+ * row is "mine".
  */
 export const getProfile = async (): Promise<Profile | null> => {
-  const { data, error } = await requireSupabase()
-    .from('profiles')
-    .select('*')
-    .maybeSingle();
-
-  if (error) throw toAppError(error, 'profile.load');
-  return data ? toProfile(data) : null;
+  try {
+    return toProfile(await api.get<ProfileRow>('/profile'));
+  } catch (raw) {
+    throw toAppError(raw, 'profile.load');
+  }
 };
 
 export const updateProfile = async (patch: {
   displayName?: string;
   timezone?: string;
 }): Promise<Profile> => {
-  const { data, error } = await requireSupabase()
-    .from('profiles')
-    .update({
-      ...(patch.displayName !== undefined && { display_name: patch.displayName }),
-      ...(patch.timezone !== undefined && { timezone: patch.timezone }),
-    })
-    .select('*')
-    .single();
-
-  if (error) throw toAppError(error, 'profile.update');
-  return toProfile(data);
+  try {
+    return toProfile(await api.patch<ProfileRow>('/profile', patch));
+  } catch (raw) {
+    throw toAppError(raw, 'profile.update');
+  }
 };
 
 export const getSettings = async (): Promise<AppSettings | null> => {
-  const { data, error } = await requireSupabase()
-    .from('user_settings')
-    .select('*')
-    .maybeSingle();
-
-  if (error) throw toAppError(error, 'settings.load');
-  return data ? toSettings(data) : null;
+  try {
+    return toSettings(await api.get<UserSettingRow>('/settings'));
+  } catch (raw) {
+    throw toAppError(raw, 'settings.load');
+  }
 };
 
 export const updateSettings = async (patch: Partial<AppSettings>): Promise<AppSettings> => {
-  const { data, error } = await requireSupabase()
-    .from('user_settings')
-    .update({
-      ...(patch.weekStartsOn !== undefined && { week_starts_on: patch.weekStartsOn }),
-      ...(patch.notificationsEnabled !== undefined && {
-        notifications_enabled: patch.notificationsEnabled,
-      }),
-      ...(patch.defaultReminderTime !== undefined && {
-        default_reminder_time: patch.defaultReminderTime,
-      }),
-      ...(patch.defaultUnit !== undefined && { default_unit: patch.defaultUnit }),
-      ...(patch.hideEmptyHistoryDays !== undefined && {
-        hide_empty_history_days: patch.hideEmptyHistoryDays,
-      }),
-    })
-    .select('*')
-    .single();
-
-  if (error) throw toAppError(error, 'profile.update');
-  return toSettings(data);
+  try {
+    return toSettings(await api.patch<UserSettingRow>('/settings', patch));
+  } catch (raw) {
+    throw toAppError(raw, 'profile.update');
+  }
 };
 
 export const setWeekStart = async (weekStartsOn: WeekStart): Promise<AppSettings> =>

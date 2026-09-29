@@ -8,7 +8,6 @@ import type { CivilDate } from '@/lib/date/civil';
 export interface DailyRecord {
   id: string;
   goalId: string;
-  userId: string;
   date: CivilDate;
   completed: boolean;
   /** Minutes for duration goals, magnitude for numeric/count goals. */

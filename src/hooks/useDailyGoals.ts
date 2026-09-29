@@ -52,7 +52,6 @@ const recordFromScreen = (goal: ResolvedGoal, date: CivilDate, now: Date): Daily
   return {
     id: 'from-screen',
     goalId: goal.goalId,
-    userId: goal.goal.userId,
     date,
     completed: goal.completed,
     actualValue: measured ? goal.actual : null,

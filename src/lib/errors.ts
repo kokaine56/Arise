@@ -2,9 +2,13 @@
  * Error normalisation.
  *
  * Two audiences, two vocabularies. People get a sentence that names the next
- * step. Developers get the raw PostgREST/Auth error in the console, with no
- * personal data in it. Raw database errors never reach the interface.
+ * step. Developers get the raw failure in the console. Raw database errors never
+ * reach the interface, which matters more now than it did with a hosted database:
+ * a CHECK constraint message is written for a SQL reader, not for a person
+ * trying to tick a box.
  */
+
+import { ApiError } from '@/lib/api/client';
 
 export type AppErrorKind =
   | 'network'
@@ -35,7 +39,7 @@ export class AppError extends Error {
 const DEFAULT_MESSAGES: Record<AppErrorKind, string> = {
   network: "We couldn't reach the server. Check your connection and try again.",
   unauthorized: 'Your session has ended. Sign in again to continue.',
-  forbidden: "You don't have access to that.",
+  forbidden: "We don't have access to that.",
   not_found: "We couldn't find that.",
   validation: 'Some of those details need another look.',
   conflict: 'That changed while you were working. Refresh and try again.',
@@ -51,19 +55,24 @@ const CONTEXT_MESSAGES: Partial<Record<string, string>> = {
   'goal.delete': "We couldn't delete that goal. Nothing was removed.",
   'record.upsert': "We couldn't save that. Your change was undone.",
   'profile.update': "We couldn't save your settings. Please try again.",
+  'profile.load': "We couldn't load your settings. Some may look default.",
+  'categories.load': "We couldn't load your categories.",
   'auth.signIn': "That email and password combination didn't match. Please try again.",
   'auth.signUp': 'Check your inbox to confirm your email, then sign in.',
   'auth.signOut': "We couldn't sign you out cleanly. Please try again.",
 };
 
 const classify = (status: number | undefined): AppErrorKind => {
-  if (status === undefined) return 'network';
+  // fetch reports a transport failure as status 0, which is the one case that
+  // means "the server is not there" rather than "the server said no".
+  if (status === undefined || status === 0) return 'network';
   if (status === 401) return 'unauthorized';
   if (status === 403) return 'forbidden';
   if (status === 404) return 'not_found';
   if (status === 409) return 'conflict';
-  if (status === 422 || status === 400) return 'validation';
+  if (status === 413) return 'validation';
   if (status === 429) return 'rate_limited';
+  if (status === 422 || status === 400) return 'validation';
   if (status >= 500) return 'unknown';
   return 'unknown';
 };
@@ -90,14 +99,19 @@ const normaliseDetail = (raw: unknown): string => {
   return 'Unexpected error';
 };
 
-/** Errors that arrive from Supabase, as opposed to thrown locally. */
-export interface SupabaseFailure {
-  message: string;
-  code?: string;
-  details?: string | null;
-  hint?: string | null;
+/** An error thrown by the API client, which carries a status and a code. */
+export interface TransportFailure {
   status?: number;
+  code?: string;
+  message?: string;
 }
+
+const describe = (raw: unknown): { detail: string; status: number | undefined } => {
+  if (raw instanceof ApiError) return { detail: `${raw.code}: ${raw.message}`, status: raw.status };
+
+  const candidate = raw as TransportFailure | undefined;
+  return { detail: normaliseDetail(candidate), status: candidate?.status };
+};
 
 /**
  * Convert anything thrown by the data layer into an `AppError`.
@@ -106,12 +120,11 @@ export interface SupabaseFailure {
 export const toAppError = (raw: unknown, context?: string): AppError => {
   if (raw instanceof AppError) return raw;
 
-  const candidate = raw as SupabaseFailure | undefined;
-  const detail = normaliseDetail(candidate);
-  const kind = classify(candidate?.status);
+  const { detail, status } = describe(raw);
+  const kind = classify(status);
 
   if (import.meta.env.DEV || import.meta.env.MODE !== 'production') {
-    // Developer-facing only. Never includes row contents or credentials.
+    // Developer-facing only. Never includes row contents.
     console.warn(`[arise:${context ?? 'unknown'}]`, kind, detail);
   }
 

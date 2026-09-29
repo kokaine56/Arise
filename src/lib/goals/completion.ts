@@ -165,7 +165,6 @@ export const materialiseRecord = (
 ): DailyRecord => ({
   id: current?.id ?? 'optimistic',
   goalId: goal.id,
-  userId: goal.userId,
   date: plan.date,
   completed: plan.completed,
   actualValue: plan.actualValue,
