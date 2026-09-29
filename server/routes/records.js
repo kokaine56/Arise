@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { badRequest, notFound, sendJson, sendNoContent } from '../http.js';
+import { requireAccessSession } from '../auth.js';
 import { toRecordRow } from '../rows.js';
 import { asBoolean, asCivilDate, asNumberOrNull, asStringOrNull, requireObject, } from '../validate.js';
 import { goalExists } from './goals.js';
@@ -44,7 +45,9 @@ const upsert = async (db, input) => {
     return await requireRecord(db, goalId, date);
 };
 export const registerRecordRoutes = (router, db) => {
-    router.get('/api/records', async ({ query, res }) => {
+    router.get('/api/records', async (ctx) => {
+        requireAccessSession(ctx);
+        const { query, res } = ctx;
         const from = query.get('from');
         const to = query.get('to');
         const date = query.get('date');
@@ -68,12 +71,16 @@ export const registerRecordRoutes = (router, db) => {
             .toArray();
         sendJson(res, 200, rows.map(r => toRecordRow(r)));
     });
-    router.put('/api/records', async ({ body, res }) => {
+    router.put('/api/records', async (ctx) => {
+        requireAccessSession(ctx);
+        const { body, res } = ctx;
         const input = requireObject(body);
         const row = await upsert(db, input);
         sendJson(res, 200, toRecordRow(row));
     });
-    router.put('/api/records/notes', async ({ body, res }) => {
+    router.put('/api/records/notes', async (ctx) => {
+        requireAccessSession(ctx);
+        const { body, res } = ctx;
         const input = requireObject(body);
         const goalId = asStringOrNull(input['goalId'], 'goalId', 64);
         if (!goalId)
@@ -102,7 +109,9 @@ export const registerRecordRoutes = (router, db) => {
         const row = await requireRecord(db, goalId, date);
         sendJson(res, 200, toRecordRow(row));
     });
-    router.delete('/api/records', async ({ query, res }) => {
+    router.delete('/api/records', async (ctx) => {
+        requireAccessSession(ctx);
+        const { query, res } = ctx;
         const goalId = query.get('goalId');
         const date = query.get('date');
         if (!goalId || !date)

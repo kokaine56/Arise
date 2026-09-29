@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { badRequest, notFound, sendJson, sendNoContent } from '../http.js';
+import { requireAccessSession } from '../auth.js';
 import { asString, requireObject } from '../validate.js';
 const toCategory = (row) => ({
     id: row.id,
@@ -30,12 +31,16 @@ const seedCategoriesIfEmpty = async (db) => {
     }
 };
 export const registerCategoryRoutes = (router, db) => {
-    router.get('/api/categories', async ({ res }) => {
+    router.get('/api/categories', async (ctx) => {
+        requireAccessSession(ctx);
+        const { res } = ctx;
         await seedCategoriesIfEmpty(db);
         const rows = await db.collection('categories').find().sort({ sort_order: 1, slug: 1 }).toArray();
         sendJson(res, 200, rows.map(r => toCategory(r)));
     });
-    router.post('/api/categories', async ({ body, res }) => {
+    router.post('/api/categories', async (ctx) => {
+        requireAccessSession(ctx);
+        const { body, res } = ctx;
         const input = requireObject(body);
         const label = asString(input['label'], 'label', 24).trim();
         if (label.length === 0)
@@ -50,7 +55,9 @@ export const registerCategoryRoutes = (router, db) => {
         const row = await db.collection('categories').findOne({ id });
         sendJson(res, 201, toCategory(row));
     });
-    router.delete('/api/categories/:id', async ({ params, res }) => {
+    router.delete('/api/categories/:id', async (ctx) => {
+        requireAccessSession(ctx);
+        const { params, res } = ctx;
         const id = params['id'];
         const row = await db.collection('categories').findOne({ id });
         if (!row)

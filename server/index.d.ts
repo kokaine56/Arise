@@ -5,6 +5,7 @@
  * payoff of moving off a hosted Postgres: the deployment collapses from
  * "app plus database plus auth provider" to a single container with a volume.
  */
+import 'dotenv/config';
 import { type IncomingMessage, type ServerResponse } from 'node:http';
 /** Exported so tests can drive the handler without opening a socket. */
 export declare const createApp: () => Promise<{

@@ -4,7 +4,11 @@ import { HttpError } from './http.js';
 
 export const getAccessCode = (): string => {
   const code = process.env.APP_ACCESS_CODE;
-  if (!code || !/^\d{4}$/.test(code)) {
+  if (code === undefined) {
+    console.error('APP_ACCESS_CODE is not configured');
+    process.exit(1);
+  }
+  if (!/^\d{4}$/.test(code)) {
     console.error('CRITICAL: APP_ACCESS_CODE environment variable must be exactly 4 digits.');
     process.exit(1);
   }
@@ -32,7 +36,10 @@ export const hasAccessSession = (req: RequestContext['req']): boolean => {
   const match = cookieHeader.match(/arise_access=([^;]+)/);
   if (!match) return false;
 
-  const parts = match[1].split('.');
+  const matchedValue = match[1];
+  if (!matchedValue) return false;
+
+  const parts = matchedValue.split('.');
   if (parts.length !== 2) return false;
   
   const payload = parts[0];

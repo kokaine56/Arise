@@ -1,4 +1,5 @@
 import { notFound, sendJson } from '../http.js';
+import { requireAccessSession } from '../auth.js';
 import { asBoolean, asClockOrNull, asString, asStringOrNull, requireObject, } from '../validate.js';
 const toProfile = (row) => ({
     id: row.id,
@@ -46,11 +47,15 @@ const readSettings = async (db) => {
     return doc;
 };
 export const registerProfileRoutes = (router, db) => {
-    router.get('/api/profile', async ({ res }) => {
+    router.get('/api/profile', async (ctx) => {
+        requireAccessSession(ctx);
+        const { res } = ctx;
         const profile = await readProfile(db);
         sendJson(res, 200, toProfile(profile));
     });
-    router.patch('/api/profile', async ({ body, res }) => {
+    router.patch('/api/profile', async (ctx) => {
+        requireAccessSession(ctx);
+        const { body, res } = ctx;
         const patch = requireObject(body);
         const sets = { updated_at: new Date().toISOString() };
         if (patch['displayName'] !== undefined) {
@@ -69,11 +74,15 @@ export const registerProfileRoutes = (router, db) => {
         const updated = await readProfile(db);
         sendJson(res, 200, toProfile(updated));
     });
-    router.get('/api/settings', async ({ res }) => {
+    router.get('/api/settings', async (ctx) => {
+        requireAccessSession(ctx);
+        const { res } = ctx;
         const settings = await readSettings(db);
         sendJson(res, 200, toSettings(settings));
     });
-    router.patch('/api/settings', async ({ body, res }) => {
+    router.patch('/api/settings', async (ctx) => {
+        requireAccessSession(ctx);
+        const { body, res } = ctx;
         const patch = requireObject(body);
         const sets = {};
         if (patch['weekStartsOn'] !== undefined) {

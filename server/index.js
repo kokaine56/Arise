@@ -5,6 +5,7 @@
  * payoff of moving off a hosted Postgres: the deployment collapses from
  * "app plus database plus auth provider" to a single container with a volume.
  */
+import 'dotenv/config';
 import { createServer } from 'node:http';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,10 +16,12 @@ import { registerGoalRoutes } from './routes/goals.js';
 import { registerRecordRoutes } from './routes/records.js';
 import { registerCategoryRoutes } from './routes/categories.js';
 import { registerProfileRoutes } from './routes/profile.js';
+import { registerAccessRoutes } from './routes/access.js';
 import { StaticHandler } from './static.js';
 const BODYLESS = new Set(['GET', 'HEAD', 'DELETE']);
 const buildRouter = (db) => {
     const router = new Router();
+    registerAccessRoutes(router);
     registerGoalRoutes(router, db);
     registerRecordRoutes(router, db);
     registerCategoryRoutes(router, db);
@@ -33,8 +36,10 @@ const buildRouter = (db) => {
     });
     return router;
 };
+import { getAccessCode } from './auth.js';
 /** Exported so tests can drive the handler without opening a socket. */
 export const createApp = async () => {
+    getAccessCode(); // Validate on boot
     const config = loadConfig();
     const db = await openDatabase();
     const router = buildRouter(db);

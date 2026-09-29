@@ -9,8 +9,10 @@ export const openDatabase = async () => {
     await client.connect();
     // Return the default database from the URI
     const db = client.db();
+    // Drop the old incorrect index if it exists (fails silently if not)
+    await db.collection('daily_records').dropIndex('goalId_1_date_1').catch(() => { });
     // Create necessary unique indexes
-    await db.collection('daily_records').createIndex({ goalId: 1, date: 1 }, { unique: true });
+    await db.collection('daily_records').createIndex({ goal_id: 1, date: 1 }, { unique: true });
     return db;
 };
 export const closeDatabase = async () => {
