@@ -12,7 +12,6 @@ import { ErrorState, InlineSpinner } from '@/components/ui/Feedback';
 import { PageTransition } from '@/components/ui/Motion';
 import {
   IconLock,
-  IconLogout,
   IconPlus,
   IconSun,
   IconMonitor,
@@ -20,7 +19,6 @@ import {
   IconTrash,
 } from '@/components/ui/Icon';
 import { toAppError } from '@/lib/errors';
-import { SETUP_INSTRUCTIONS, supabaseConfig } from '@/lib/env';
 import { detectTimeZone } from '@/lib/date/civil';
 import { WEEK_START_OPTIONS, type ThemePreference } from '@/types/profile';
 
@@ -37,8 +35,7 @@ const THEME_ICON: Record<ThemePreference, typeof IconSun> = {
 };
 
 export const SettingsPage = () => {
-  const { profile, settings, updateProfile, updateSettings, signOut, user, error: authError, reloadProfile } =
-    useAuth();
+  const { profile, settings, updateProfile, updateSettings, error: authError, reloadProfile } = useAuth();
   const { preference, setPreference } = useTheme();
   const { notify } = useToast();
   const timeZone = useTimeZone();
@@ -46,9 +43,7 @@ export const SettingsPage = () => {
 
   const [name, setName] = useState(profile?.displayName ?? '');
   const [savingName, setSavingName] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
 
-  // Keep the field in step with the profile once it arrives after sign-in.
   useEffect(() => {
     setName(profile?.displayName ?? '');
   }, [profile?.displayName]);
@@ -85,20 +80,6 @@ export const SettingsPage = () => {
         message: "We couldn't update your time zone",
         detail: toAppError(raw, 'profile.update').userMessage,
       });
-    }
-  };
-
-  const onSignOut = async (): Promise<void> => {
-    setSigningOut(true);
-    try {
-      await signOut();
-    } catch (raw) {
-      notify({
-        tone: 'error',
-        message: "We couldn't sign you out",
-        detail: toAppError(raw, 'auth.signOut').userMessage,
-      });
-      setSigningOut(false);
     }
   };
 
@@ -147,20 +128,6 @@ export const SettingsPage = () => {
                 {savingName ? 'Saving…' : 'Save name'}
               </GlassButton>
             </div>
-
-            <dl className="space-y-2 border-t border-hairline pt-3 text-caption">
-              <Row label="Email" value={user?.email ?? '—'} />
-              <Row label="Member since" value={formatMemberSince(profile?.createdAt)} />
-            </dl>
-
-            <GlassButton
-              onClick={() => void onSignOut()}
-              disabled={signingOut}
-              leading={<IconLogout className="size-4" />}
-              block
-            >
-              {signingOut ? 'Signing out…' : 'Sign out'}
-            </GlassButton>
           </div>
         </GlassCard>
 
@@ -243,16 +210,10 @@ export const SettingsPage = () => {
               <div>
                 <p className="text-body text-foreground">Your records are yours alone.</p>
                 <p className="mt-1 text-caption text-muted">
-                  Every table is protected by Row Level Security, so a signed-in user can only ever
-                  read or write their own rows. There is no analytics service, no third-party
-                  tracking, and no account data anywhere but your Supabase project.
+                  There is no analytics service, no third-party tracking, and your data is stored securely in MongoDB.
                 </p>
               </div>
             </div>
-            <p className="border-t border-hairline pt-3 text-micro text-subtle">
-              Arise {supabaseConfig.debug ? 'is in debug mode' : 'is running in production mode'}.{' '}
-              {SETUP_INSTRUCTIONS.length} setup steps are documented in README.md.
-            </p>
           </div>
         </GlassCard>
       </div>
@@ -275,13 +236,6 @@ const Row = ({ label, value, action }: RowProps) => (
     </dd>
   </div>
 );
-
-const formatMemberSince = (iso: string | undefined): string => {
-  if (!iso) return '—';
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-};
 
 interface CategoriesCardProps {
   categories: readonly Category[];
