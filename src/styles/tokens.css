@@ -54,6 +54,17 @@
     0 1px 1px rgba(0, 0, 0, 0.3), 0 24px 60px -24px rgba(0, 0, 0, 0.85);
   --glass-inset: inset 0 1px 0 0 var(--glass-sheen);
 
+  /* --- Nav Glass (dark) ------------------------------------------------ */
+  --nav-glass-bg: rgba(12, 14, 18, 0.55);
+  --nav-glass-border: rgba(255, 255, 255, 0.08);
+  --nav-glass-sheen: rgba(255, 255, 255, 0.12);
+  --nav-glass-shadow: 0 -8px 40px -8px rgba(0, 0, 0, 0.45);
+  --nav-glass-blur: 40px;
+  --nav-glass-saturate: 1.8;
+  --nav-active-bg: rgba(123, 220, 192, 0.12);
+  --nav-active-border: rgba(123, 220, 192, 0.18);
+  --nav-active-glow: rgba(123, 220, 192, 0.06);
+
   /* --- Signal ---------------------------------------------------------- */
   /* Completion *is* the product's one signal, so accent and success share a
      hue family rather than competing. */
@@ -89,33 +100,54 @@
   --background: #edeff2;
   --background-elevated: #f6f7f9;
 
-  --ambient-primary: rgba(150, 190, 205, 0.3);
-  --ambient-secondary: rgba(214, 190, 160, 0.24);
-  --ambient-tertiary: rgba(170, 200, 190, 0.18);
+  /* Richer ambient washes for the soft environmental lighting visible in
+     the reference — pale blue, subtle cyan, faint warm tones blended through
+     the frosted surfaces. */
+  --ambient-primary: rgba(140, 190, 220, 0.35);
+  --ambient-secondary: rgba(200, 185, 160, 0.22);
+  --ambient-tertiary: rgba(150, 210, 195, 0.20);
 
   --foreground: #10141a;
   --foreground-muted: #59616d;
   --foreground-subtle: #808996;
   --foreground-on-accent: #ffffff;
 
-  --glass-background: rgba(255, 255, 255, 0.6);
-  --glass-background-strong: rgba(255, 255, 255, 0.78);
-  --glass-background-hover: rgba(255, 255, 255, 0.72);
+  /* More translucent glass for premium frosted-glass look */
+  --glass-background: rgba(255, 255, 255, 0.52);
+  --glass-background-strong: rgba(255, 255, 255, 0.68);
+  --glass-background-hover: rgba(255, 255, 255, 0.62);
   --glass-background-sunken: rgba(16, 22, 30, 0.04);
 
-  --glass-border: rgba(16, 22, 30, 0.09);
-  --glass-border-strong: rgba(16, 22, 30, 0.16);
-  --glass-sheen: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-border-strong: rgba(255, 255, 255, 0.80);
+  --glass-sheen: rgba(255, 255, 255, 0.90);
 
-  --glass-blur: 18px;
-  --glass-blur-strong: 30px;
-  --glass-saturate: 1.35;
+  --glass-blur: 24px;
+  --glass-blur-strong: 36px;
+  --glass-saturate: 1.5;
 
   --glass-shadow:
-    0 1px 1px rgba(16, 22, 30, 0.04), 0 8px 24px -14px rgba(16, 22, 30, 0.22);
+    0 1px 2px rgba(16, 22, 30, 0.04),
+    0 4px 16px -6px rgba(16, 22, 30, 0.10),
+    0 12px 36px -12px rgba(16, 22, 30, 0.08);
   --glass-shadow-raised:
-    0 1px 1px rgba(16, 22, 30, 0.05), 0 24px 56px -26px rgba(16, 22, 30, 0.32);
+    0 1px 2px rgba(16, 22, 30, 0.05),
+    0 8px 24px -8px rgba(16, 22, 30, 0.14),
+    0 24px 56px -26px rgba(16, 22, 30, 0.12);
   --glass-inset: inset 0 1px 0 0 var(--glass-sheen);
+
+  /* --- Nav Glass (light) — premium frosted dock ----------------------- */
+  --nav-glass-bg: rgba(255, 255, 255, 0.45);
+  --nav-glass-border: rgba(255, 255, 255, 0.70);
+  --nav-glass-sheen: rgba(255, 255, 255, 0.95);
+  --nav-glass-shadow:
+    0 -2px 20px -4px rgba(16, 22, 30, 0.06),
+    0 -8px 48px -12px rgba(16, 22, 30, 0.08);
+  --nav-glass-blur: 44px;
+  --nav-glass-saturate: 1.8;
+  --nav-active-bg: rgba(47, 156, 123, 0.10);
+  --nav-active-border: rgba(47, 156, 123, 0.14);
+  --nav-active-glow: rgba(47, 156, 123, 0.05);
 
   /* Darkened for legibility on a light canvas: 5.2:1 against --glass-strong */
   --accent: #2f9c7b;

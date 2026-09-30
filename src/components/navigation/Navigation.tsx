@@ -33,9 +33,12 @@ const isActive = (pathname: string, to: string): boolean =>
 /**
  * Bottom navigation for phones.
  *
- * A single glass bar, five targets, each comfortably past 44px. The active
- * indicator is a small bar above the label rather than a filled pill, which
- * keeps the bar light enough to sit over content without dominating it.
+ * A premium liquid-glass dock fixed to the bottom of the viewport. The glass
+ * material — blur, refraction, sheen — is defined entirely in CSS via the
+ * `.nav-glass` class in `globals.css`, so this component stays declarative.
+ *
+ * The active indicator is a translucent frosted capsule rather than a solid
+ * button, creating a "glass inside glass" effect.
  */
 export const BottomNav = ({ pathname }: { pathname: string }) => {
   const reduceMotion = useReducedMotion();
@@ -43,25 +46,10 @@ export const BottomNav = ({ pathname }: { pathname: string }) => {
   return (
     <nav
       aria-label="Primary"
-      className={cn(
-        'fixed inset-x-0 bottom-0 z-40 md:hidden',
-        // Translucent liquid glass: highly transparent base, strong blur and saturation
-        'bg-[var(--background)]/40',
-        'backdrop-blur-[40px] saturate-[2]',
-        'border-t border-[var(--glass-border)]/50',
-        'shadow-[0_-12px_48px_rgba(0,0,0,0.12)]'
-      )}
+      className="nav-glass fixed inset-x-0 bottom-0 z-40 md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      {/* Refractive top edge highlight */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--glass-sheen)] to-transparent opacity-80" />
-      
-      {/* Soft atmospheric internal light (subtle mint/teal refraction) */}
-      <div className="pointer-events-none absolute inset-0 flex justify-center overflow-hidden">
-        <div className="h-[60px] w-[60%] -translate-y-8 rounded-full bg-[var(--accent)]/10 blur-[24px]" />
-      </div>
-
-      <div className="relative mx-auto grid max-w-md grid-cols-5 px-2 py-2">
+      <div className="relative z-10 mx-auto grid max-w-md grid-cols-5 px-1 py-1.5">
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.to);
           const Icon = item.icon;
@@ -72,25 +60,20 @@ export const BottomNav = ({ pathname }: { pathname: string }) => {
               end={item.to === '/'}
               aria-current={active ? 'page' : undefined}
               className={cn(
-                'relative flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-[var(--radius-control)]',
-                'transition-colors duration-300',
-                active ? 'text-accent-strong' : 'text-subtle hover:text-muted',
+                'relative flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-[var(--radius-control)]',
+                'transition-colors duration-200',
+                active ? 'text-accent' : 'text-subtle hover:text-muted',
               )}
             >
               {active ? (
-                <motion.div
-                  layoutId="bottom-nav-active-bg"
-                  className={cn(
-                    'absolute inset-0 rounded-[var(--radius-control)]',
-                    // Translucent active tab base
-                    'bg-[var(--accent)]/15',
-                    'backdrop-blur-lg',
-                    // Subtle glass edge and inner highlight
-                    'border border-[var(--accent)]/30',
-                    'shadow-[inset_0_1px_2px_var(--glass-sheen)]'
-                  )}
+                <motion.span
+                  layoutId="bottom-nav-capsule"
+                  aria-hidden
+                  className="nav-active-capsule absolute inset-1"
                   transition={
-                    reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 350, damping: 30 }
+                    reduceMotion
+                      ? { duration: 0 }
+                      : { type: 'spring', stiffness: 380, damping: 34 }
                   }
                 />
               ) : null}
