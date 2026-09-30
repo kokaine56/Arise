@@ -166,78 +166,6 @@
     display: none;
   }
 
-  /* ================================================================
-     Navigation Glass — the premium liquid-glass dock.
-     A dedicated surface class so the navigation has its own tuned
-     blur / transparency / refraction independent of card glass.
-     ================================================================ */
-
-  .nav-glass {
-    position: relative;
-    isolation: isolate;
-    background-color: var(--nav-glass-bg);
-    border-top: 1px solid var(--nav-glass-border);
-    box-shadow: var(--nav-glass-shadow);
-    -webkit-backdrop-filter: blur(var(--nav-glass-blur)) saturate(var(--nav-glass-saturate));
-    backdrop-filter: blur(var(--nav-glass-blur)) saturate(var(--nav-glass-saturate));
-  }
-
-  /* Top-edge sheen: simulates light catching the upper rim of the glass.
-     A gradient from center outward fades naturally at the edges. */
-  .nav-glass::before {
-    content: '';
-    position: absolute;
-    inset-inline: 0;
-    top: 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 5%,
-      var(--nav-glass-sheen) 30%,
-      var(--nav-glass-sheen) 70%,
-      transparent 95%
-    );
-    opacity: 0.6;
-    pointer-events: none;
-    z-index: 2;
-  }
-
-  /* Internal refraction layer: a very soft radial glow that gives the
-     glass optical depth. */
-  .nav-glass::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(
-        ellipse 60% 100% at 50% 0%,
-        var(--nav-active-glow),
-        transparent 70%
-      ),
-      radial-gradient(
-        ellipse 80% 140% at 30% -20%,
-        rgba(200, 225, 240, 0.04),
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse 80% 140% at 75% -20%,
-        rgba(200, 240, 230, 0.03),
-        transparent 60%
-      );
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  /* Active navigation capsule — glass inside glass */
-  .nav-active-capsule {
-    background-color: var(--nav-active-bg);
-    border: 1px solid var(--nav-active-border);
-    border-radius: var(--radius-control);
-    box-shadow:
-      inset 0 1px 1px rgba(255, 255, 255, 0.12),
-      0 0 12px -4px var(--nav-active-glow);
-  }
-
   /* Raw hairline used to separate rows inside a single glass surface. Keeps
      the day as one object instead of a stack of cards. */
   .hairline {
@@ -381,7 +309,6 @@
 @media (prefers-reduced-transparency: reduce) {
   .glass,
   .glass--strong,
-  .nav-glass,
   .scrim {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -389,9 +316,5 @@
 
   .glass {
     background-color: var(--glass-background-strong);
-  }
-
-  .nav-glass {
-    background-color: var(--background);
   }
 }
