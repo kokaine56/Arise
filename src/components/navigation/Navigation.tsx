@@ -43,10 +43,25 @@ export const BottomNav = ({ pathname }: { pathname: string }) => {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-30 md:hidden"
+      className={cn(
+        'fixed inset-x-0 bottom-0 z-40 md:hidden',
+        // Premium liquid glass surface
+        'bg-[var(--glass-background-strong)]',
+        'backdrop-blur-[28px] saturate-[1.8]',
+        'border-t border-[var(--glass-border)]',
+        'shadow-[0_-4px_32px_rgba(0,0,0,0.08)]'
+      )}
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="glass mx-3 mb-3 grid grid-cols-5 rounded-[var(--radius-glass)] px-1 py-1.5">
+      {/* Top edge highlight for refraction */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-[var(--glass-sheen)] opacity-40 mix-blend-overlay" />
+      
+      {/* Very subtle ambient glow */}
+      <div className="pointer-events-none absolute inset-0 flex justify-center overflow-hidden">
+        <div className="h-[50px] w-[200px] -translate-y-6 rounded-full bg-[var(--accent)] opacity-[0.03] blur-[20px]" />
+      </div>
+
+      <div className="relative mx-auto grid max-w-md grid-cols-5 px-2 py-2">
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.to);
           const Icon = item.icon;
@@ -57,23 +72,27 @@ export const BottomNav = ({ pathname }: { pathname: string }) => {
               end={item.to === '/'}
               aria-current={active ? 'page' : undefined}
               className={cn(
-                'relative flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-[var(--radius-control)]',
-                'transition-colors duration-200',
-                active ? 'text-accent' : 'text-subtle hover:text-muted',
+                'relative flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-[var(--radius-control)]',
+                'transition-colors duration-300',
+                active ? 'text-accent-strong' : 'text-subtle hover:text-muted',
               )}
             >
               {active ? (
-                <motion.span
-                  layoutId="bottom-nav-indicator"
-                  aria-hidden
-                  className="absolute top-0 h-0.5 w-5 rounded-full bg-accent"
+                <motion.div
+                  layoutId="bottom-nav-active-bg"
+                  className={cn(
+                    'absolute inset-0 rounded-[var(--radius-control)]',
+                    'bg-[var(--accent-quiet)]',
+                    'border border-[var(--accent)]/10',
+                    'shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]'
+                  )}
                   transition={
                     reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 36 }
                   }
                 />
               ) : null}
-              <Icon className="size-[19px]" />
-              <span className="text-[10px] font-medium leading-none tracking-wide">
+              <Icon className="relative z-10 size-[20px]" />
+              <span className="relative z-10 text-[10px] font-medium leading-none tracking-wide">
                 {item.label}
               </span>
             </NavLink>
