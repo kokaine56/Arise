@@ -45,20 +45,20 @@ export const BottomNav = ({ pathname }: { pathname: string }) => {
       aria-label="Primary"
       className={cn(
         'fixed inset-x-0 bottom-0 z-40 md:hidden',
-        // Premium liquid glass surface
-        'bg-[var(--glass-background-strong)]',
-        'backdrop-blur-[28px] saturate-[1.8]',
-        'border-t border-[var(--glass-border)]',
-        'shadow-[0_-4px_32px_rgba(0,0,0,0.08)]'
+        // Translucent liquid glass: highly transparent base, strong blur and saturation
+        'bg-[var(--background)]/40',
+        'backdrop-blur-[40px] saturate-[2]',
+        'border-t border-[var(--glass-border)]/50',
+        'shadow-[0_-12px_48px_rgba(0,0,0,0.12)]'
       )}
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      {/* Top edge highlight for refraction */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-[var(--glass-sheen)] opacity-40 mix-blend-overlay" />
+      {/* Refractive top edge highlight */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--glass-sheen)] to-transparent opacity-80" />
       
-      {/* Very subtle ambient glow */}
+      {/* Soft atmospheric internal light (subtle mint/teal refraction) */}
       <div className="pointer-events-none absolute inset-0 flex justify-center overflow-hidden">
-        <div className="h-[50px] w-[200px] -translate-y-6 rounded-full bg-[var(--accent)] opacity-[0.03] blur-[20px]" />
+        <div className="h-[60px] w-[60%] -translate-y-8 rounded-full bg-[var(--accent)]/10 blur-[24px]" />
       </div>
 
       <div className="relative mx-auto grid max-w-md grid-cols-5 px-2 py-2">
@@ -82,12 +82,15 @@ export const BottomNav = ({ pathname }: { pathname: string }) => {
                   layoutId="bottom-nav-active-bg"
                   className={cn(
                     'absolute inset-0 rounded-[var(--radius-control)]',
-                    'bg-[var(--accent-quiet)]',
-                    'border border-[var(--accent)]/10',
-                    'shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]'
+                    // Translucent active tab base
+                    'bg-[var(--accent)]/15',
+                    'backdrop-blur-lg',
+                    // Subtle glass edge and inner highlight
+                    'border border-[var(--accent)]/30',
+                    'shadow-[inset_0_1px_2px_var(--glass-sheen)]'
                   )}
                   transition={
-                    reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 36 }
+                    reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 350, damping: 30 }
                   }
                 />
               ) : null}
