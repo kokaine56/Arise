@@ -33,7 +33,7 @@ export const DashboardPage = () => {
   const timeZone = useTimeZone();
   const today = useToday(timeZone);
   const { profile } = useAuth();
-  const { labelFor, categories } = useCategories();
+  const { categories } = useCategories();
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
