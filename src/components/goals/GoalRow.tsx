@@ -116,7 +116,7 @@ export const GoalRow = ({
         )}
 
         <div className="flex shrink-0 flex-col items-end gap-1 pr-1">
-          <span className="text-micro text-subtle">{categoryLabel ?? ''}</span>
+          {categoryLabel ? <span className="text-micro text-subtle">{categoryLabel}</span> : null}
           {goal.type === 'time' && goal.targetTime ? (
             <span
               className={
@@ -184,8 +184,8 @@ const RowLabel = ({ goal }: { goal: ResolvedGoal }) => {
       <p
         className={
           goal.completed
-            ? 'truncate text-body text-muted'
-            : 'truncate text-body text-foreground'
+            ? 'text-body text-muted'
+            : 'text-body text-foreground'
         }
       >
         {goal.name}

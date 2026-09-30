@@ -138,7 +138,7 @@ export const DashboardPage = () => {
                       goal={goal}
                       date={today}
                       timeZone={timeZone}
-                      categoryLabel={labelFor(goal.categoryId)}
+                      categoryLabel={undefined}
                       pending={pending.has(goal.goalId)}
                       onToggle={() => onToggle(goal)}
                       onAdjust={(delta) => onAdjust(goal, delta)}

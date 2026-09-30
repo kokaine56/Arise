@@ -176,8 +176,7 @@
   --color-glass-border-strong: var(--glass-border-strong);
 
   /* Type */
-  --font-display: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system,
-    'Segoe UI', sans-serif;
+  --font-display: var(--font-sans);
   --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
 
