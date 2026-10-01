@@ -118,7 +118,6 @@ export interface GoalEditorProps {
   /** Present when editing; absent when creating. */
   goal?: Goal | undefined;
   categories: readonly Category[];
-  timeZone: string;
   /** Called after a successful save so the caller can refresh its lists. */
   onSaved?: (goal: Goal) => void;
 }
@@ -137,7 +136,6 @@ export const GoalEditor = ({
   onClose,
   goal,
   categories,
-  timeZone,
   onSaved,
 }: GoalEditorProps) => {
   const reduceMotion = useReducedMotion();

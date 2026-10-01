@@ -166,7 +166,6 @@ export const DashboardPage = () => {
         open={editorOpen}
         onClose={() => setEditorOpen(false)}
         categories={categories}
-        timeZone={timeZone}
         onSaved={refetch}
       />
     </PageTransition>

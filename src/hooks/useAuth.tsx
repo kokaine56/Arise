@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { DEFAULT_SETTINGS, type AppSettings, type Profile } from '@/types/profile';
-import { detectTimeZone, todayIn, getLogicalDate, type CivilDate } from '@/lib/date/civil';
+import { detectTimeZone, getLogicalDate, type CivilDate } from '@/lib/date/civil';
 import { type AppError } from '@/lib/errors';
 
 interface AuthContextValue {

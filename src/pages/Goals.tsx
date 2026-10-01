@@ -212,7 +212,6 @@ export const GoalsPage = () => {
         open={editorGoal !== null}
         {...(editorGoal !== null && editorGoal !== 'new' && { goal: editorGoal })}
         categories={categories}
-        timeZone={timeZone}
         onClose={() => setEditorGoal(null)}
         onSaved={() => {
           query.refetch();
