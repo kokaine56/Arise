@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { DEFAULT_SETTINGS, type AppSettings, type Profile } from '@/types/profile';
-import { detectTimeZone, todayIn, type CivilDate } from '@/lib/date/civil';
+import { detectTimeZone, todayIn, getLogicalDate, type CivilDate } from '@/lib/date/civil';
 import { type AppError } from '@/lib/errors';
 
 interface AuthContextValue {
@@ -149,10 +149,10 @@ export const useTimeZone = (): string => {
 export const useWeekStart = (): 1 | 7 => useAuth().settings.weekStartsOn;
 
 export const useToday = (timeZone: string): CivilDate => {
-  const [today, setToday] = useState<CivilDate>(() => todayIn(timeZone));
+  const [today, setToday] = useState<CivilDate>(() => getLogicalDate());
   useEffect(() => {
     const tick = (): void => {
-      const next = todayIn(timeZone);
+      const next = getLogicalDate();
       setToday((previous) => (previous === next ? previous : next));
     };
     const timer = window.setInterval(tick, 60_000);

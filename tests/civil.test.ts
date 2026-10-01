@@ -16,6 +16,7 @@ import {
   startOfWeek,
   toCivilDate,
   todayIn,
+  getLogicalDate,
 } from '@/lib/date/civil';
 import type { CivilDate } from '@/lib/date/civil';
 
@@ -247,3 +248,36 @@ describe('month helpers', () => {
     expect(startOfMonth(d('2026-09-29'))).toBe('2026-09-01');
   });
 });
+
+describe('getLogicalDate', () => {
+  it('enforces a 2:00 AM IST boundary', () => {
+    // 2026-09-30 23:59 IST
+    // UTC = 2026-09-30T18:29:00Z
+    expect(getLogicalDate(new Date('2026-09-30T18:29:00Z'))).toBe('2026-09-30');
+
+    // 2026-10-01 01:59 IST
+    // UTC = 2026-09-30T20:29:00Z
+    expect(getLogicalDate(new Date('2026-09-30T20:29:00Z'))).toBe('2026-09-30');
+
+    // 2026-10-01 02:00 IST
+    // UTC = 2026-09-30T20:30:00Z
+    expect(getLogicalDate(new Date('2026-09-30T20:30:00Z'))).toBe('2026-10-01');
+
+    // 2026-10-01 02:01 IST
+    // UTC = 2026-09-30T20:31:00Z
+    expect(getLogicalDate(new Date('2026-09-30T20:31:00Z'))).toBe('2026-10-01');
+
+    // 2026-10-01 05:28 IST
+    // UTC = 2026-09-30T23:58:00Z
+    expect(getLogicalDate(new Date('2026-09-30T23:58:00Z'))).toBe('2026-10-01');
+
+    // 2026-10-01 05:30 IST
+    // UTC = 2026-10-01T00:00:00Z
+    expect(getLogicalDate(new Date('2026-10-01T00:00:00Z'))).toBe('2026-10-01');
+
+    // 2026-10-01 11:00 IST
+    // UTC = 2026-10-01T05:30:00Z
+    expect(getLogicalDate(new Date('2026-10-01T05:30:00Z'))).toBe('2026-10-01');
+  });
+});
+

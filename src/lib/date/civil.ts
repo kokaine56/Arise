@@ -148,6 +148,28 @@ export const todayIn = (timeZone: string, now: Date = new Date()): CivilDate => 
   });
 };
 
+/**
+ * The application's logical daily date.
+ * Enforces Asia/Kolkata and a 02:00 AM daily boundary.
+ */
+export const getLogicalDate = (now: Date = new Date()): CivilDate => {
+  const zone = 'Asia/Kolkata';
+  
+  // Shift the clock back 2 hours:
+  // 01:59 AM -> 23:59 PM (previous day)
+  // 02:00 AM -> 00:00 AM (current day)
+  const logicalInstant = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+
+  const parts = getCivilDateFormatter(zone).formatToParts(logicalInstant);
+  const pick = (type: Intl.DateTimeFormatPartTypes): number =>
+    Number(parts.find((part) => part.type === type)?.value);
+  return partsToCivil({
+    year: pick('year'),
+    month: pick('month'),
+    day: pick('day'),
+  });
+};
+
 /** The current instant, decomposed into the user's local wall clock. */
 export interface LocalTime {
   hours: number;

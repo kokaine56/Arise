@@ -81,13 +81,12 @@ export const BottomNav = ({ pathname }: { pathname: string }) => {
                 <motion.div
                   layoutId="bottom-nav-active-bg"
                   className={cn(
-                    'absolute inset-0 rounded-[var(--radius-control)]',
+                    'absolute inset-0 rounded-full',
                     // Translucent active tab base
                     'bg-[var(--accent)]/15',
-                    'backdrop-blur-lg',
-                    // Subtle glass edge and inner highlight
-                    'border border-[var(--accent)]/30',
-                    'shadow-[inset_0_1px_2px_var(--glass-sheen)]'
+                    'backdrop-blur-md',
+                    // Soft inner shadow and highlight, no hard border
+                    'shadow-[inset_0_1px_4px_var(--glass-sheen),inset_0_-1px_4px_rgba(0,0,0,0.1)]'
                   )}
                   transition={
                     reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 350, damping: 30 }

@@ -8,7 +8,7 @@ import { GlassCard } from '@/components/glass/GlassCard';
 import { ErrorState } from '@/components/ui/Feedback';
 import { toAppError } from '@/lib/errors';
 import { parseGoalForm, toGoalInput, type GoalDraft, type GoalFieldErrors } from '@/lib/validation/goal';
-import { todayIn } from '@/lib/date/civil';
+import { getLogicalDate } from '@/lib/date/civil';
 import { DAY_LABELS, GOAL_TYPE_HINTS, GOAL_TYPE_LABELS, ISO_DAYS, type FrequencyConfig, type FrequencyType, type Goal, type GoalType, type IsoDay } from '@/types/goal';
 import { createGoal, updateGoal, type GoalInput } from '@/services/goals/goals.service';
 import { useToast } from '@/hooks/useToast';
@@ -146,7 +146,7 @@ export const GoalEditor = ({
   const formTopRef = useRef<HTMLDivElement>(null);
 
   const defaultCategory = categories[0]?.id ?? FALLBACK_CATEGORY;
-  const today = useMemo(() => todayIn(timeZone), [timeZone]);
+  const today = useMemo(() => getLogicalDate(), []);
 
   const [form, setForm] = useState<FormState>(() =>
     goal ? fromGoal(goal, defaultCategory) : emptyForm(today, defaultCategory),
